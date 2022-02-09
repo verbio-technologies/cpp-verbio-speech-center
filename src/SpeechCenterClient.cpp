@@ -62,6 +62,9 @@ void SpeechCenterClient::process(const std::string &audioPath) {
     int16_t audioData[sndfileHandle.frames()];
     sndfileHandle.read(audioData, sndfileHandle.frames());
 
+    INFO("Read {} samples with {} bytes per sample", sndfileHandle.frames(), sizeof(*audioData));
+
+
     csr_grpc_gateway::RecognitionRequest initRequest;
 
     initRequest.set_allocated_init(new csr_grpc_gateway::RecognitionInit(*initMessage));
@@ -72,8 +75,7 @@ void SpeechCenterClient::process(const std::string &audioPath) {
             ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
         } else {
             csr_grpc_gateway::RecognitionRequest audioRequest;
-            INFO("Bytes per sample: {}", sizeof(audioData));
-            audioRequest.set_audio(static_cast<void*>(audioData), sndfileHandle.frames()*sizeof(audioData));
+            audioRequest.set_audio(static_cast<void*>(audioData), sndfileHandle.frames()*sizeof(*audioData));
             if (!stream->Write(audioRequest)) {
                 auto status = stream->Finish();
                 ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
