@@ -69,22 +69,15 @@ void SpeechCenterClient::process(const std::string &audioPath) {
         INFO("Sending: \n{} ",  initRequest.DebugString());
         if (!stream->Write(initRequest)) {
             auto status = stream->Finish();
-            ERROR("*ERROR {} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
+            ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
         } else {
-            INFO( "RESPONSE:  {}", response.DebugString());
-
-
-            //        while (audioFileReader.stillPendingChunksToRead()) {
-            ////            csr_grpc_gateway::RecognitionRequest audioRequest;
-            ////            const auto chunk = audioFileReader.readAudioChunk();
-            ////            audioRequest.set_audio(chunk.getData(), chunk.getSizeInBytes());
-            ////            //        audioRequest.set_allocated_audio(new std::string(static_cast<const char*>(chunk.getData()), chunk.getSizeInBytes()));
-            ////            if (!stream->Write(audioRequest)) {
-            ////                auto status = stream->Finish();
-            ////                std::cout << "ERROR: " <<  status.error_message() << std::endl;
-            ////                break;
-            ////            }
-            //        }
+            csr_grpc_gateway::RecognitionRequest audioRequest;
+            INFO("Bytes per sample: {}", sizeof(audioData));
+            audioRequest.set_audio(static_cast<void*>(audioData), sndfileHandle.frames()*sizeof(audioData));
+            if (!stream->Write(audioRequest)) {
+                auto status = stream->Finish();
+                ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
+            }
         }
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
