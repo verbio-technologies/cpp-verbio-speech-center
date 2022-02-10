@@ -17,6 +17,6 @@ jobs:
       - name: Install CMake
         run: conan install cmake/3.16.4@ -g=virtualrunenv
       - name: Build
-        run: conan install . && cmake . && cmake --build ./ --target all --parallel
+        run: conan install -s compiler.libcxx=libstdc++11 . && cmake . && cmake --build ./ --target all --parallel
       - name: Test
         run: ctest --parallel
