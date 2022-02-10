@@ -28,7 +28,7 @@ void Configuration::parse(int argc, char **argv) {
 
     if (parsedOptions.count("h") > 0) {
         std::cout << options.help();
-        exit(1);
+        exit(0);
     }
     if ( (parsedOptions.count("t") == 0) == (parsedOptions.count("b") == 0))
         throw GrpcException("Topic and grammar options are mutually exclusive");
