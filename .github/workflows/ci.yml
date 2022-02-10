@@ -20,3 +20,5 @@ jobs:
         run: conan install -s compiler.libcxx=libstdc++11 . && cmake . && cmake --build ./ --target all --parallel
       - name: Test
         run: ctest --parallel
+      - name: Exec
+        run: cli_client --help
