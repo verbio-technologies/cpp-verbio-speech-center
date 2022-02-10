@@ -33,25 +33,29 @@ void SpeechCenterClient::connect(const Configuration& configuration) {
     INFO("R: {} ",  response.DebugString());
     INFO("Stream created");
     INFO("State: {} ",  toascii(channel->GetState(true)));
-    std::this_thread::sleep_for(std::chrono::seconds(10));
     INFO("State: {} ",  toascii(channel->GetState(true)));
     INFO("Metadata:");
+
+    /*
     stream->WaitForInitialMetadata();
+
 
     for (const auto &data : context.GetServerTrailingMetadata())
         std::cout << data.first << " = " << data.second;
 
     for (const auto &data : context.GetServerInitialMetadata())
         std::cout << data.first << " = " <<  data.second;
+    */
 
     initMessage = std::make_unique<csr_grpc_gateway::RecognitionInit>();
     initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
     initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
     INFO("Init message created:  {} ",  initMessage->DebugString());
-    std::this_thread::sleep_for(std::chrono::seconds(3));
 }
 
 void SpeechCenterClient::process(const std::string &audioPath) {
+
+    INFO("Running SpeechCenterClient::process!");
 
     SndfileHandle sndfileHandle(audioPath);
     if (sndfileHandle.channels() != 1)
@@ -74,6 +78,7 @@ void SpeechCenterClient::process(const std::string &audioPath) {
             auto status = stream->Finish();
             ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
         } else {
+            INFO("Audio request...");
             csr_grpc_gateway::RecognitionRequest audioRequest;
             audioRequest.set_audio(static_cast<void*>(audioData), sndfileHandle.frames()*sizeof(*audioData));
             if (!stream->Write(audioRequest)) {
@@ -81,11 +86,16 @@ void SpeechCenterClient::process(const std::string &audioPath) {
                 ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
             }
         }
-        std::this_thread::sleep_for(std::chrono::seconds(3));
 
         stream->WritesDone();
+
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+
+        INFO("FINAL RESPONSE: -{}- ",  response.text());
+
         stream.reset();
     }
+
     recognizer.reset();
 }
 
