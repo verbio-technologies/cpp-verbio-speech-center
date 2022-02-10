@@ -15,19 +15,27 @@ protobuf_generate_grpc_cpp(SPEECH_CENTER_SOURCE SPEECH_CENTER_HEADER verbio-spee
 message(STATUS "sources: ${SPEECH_CENTER_SOURCE}")
 message(STATUS "headers: ${SPEECH_CENTER_HEADER}")
 
-add_library(speech-center OBJECT
+add_library(speech-center-grpc OBJECT
         ${SPEECH_CENTER_SOURCE}
         ${SPEECH_CENTER_HEADER}
         )
-target_link_libraries(speech-center PUBLIC protobuf::protobuf gRPC::grpc++ gRPC::grpc++_reflection gRPC::gpr gRPC::grpc)
-target_include_directories(speech-center PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(speech-center-grpc PUBLIC protobuf::protobuf gRPC::grpc++ gRPC::grpc++_reflection gRPC::gpr gRPC::grpc)
+target_include_directories(speech-center-grpc PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(cli_client
-        src/main.cpp
+add_library(speech-center-client OBJECT
         src/gRpcExceptions.cpp
         src/SpeechCenterClient.cpp
         src/Configuration.cpp
         )
-target_link_libraries(cli_client PRIVATE speech-center cxxopts::cxxopts spdlog::spdlog SndFile::sndfile)
+target_link_libraries(speech-center-client PUBLIC  speech-center-grpc cxxopts::cxxopts spdlog::spdlog SndFile::sndfile)
+target_include_directories(speech-center-client PUBLIC src)
+
+add_executable(cli_client
+        src/main.cpp)
+target_link_libraries(cli_client PRIVATE speech-center-client)
 
 
+enable_testing()
+include(CTest)
+include(GoogleTest)
+add_subdirectory(test)
