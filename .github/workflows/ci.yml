@@ -21,4 +21,4 @@ jobs:
       - name: Test
         run: ctest --parallel
       - name: Exec
-        run: cli_client --help
+        run: ./cli_client --help
