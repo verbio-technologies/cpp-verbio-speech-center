@@ -22,7 +22,7 @@ add_library(speech-center-grpc OBJECT
 target_link_libraries(speech-center-grpc PUBLIC protobuf::protobuf gRPC::grpc++ gRPC::grpc++_reflection gRPC::gpr gRPC::grpc)
 target_include_directories(speech-center-grpc PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(speech-center-client OBJECT
+add_library(speech-center-client STATIC
         src/gRpcExceptions.cpp
         src/SpeechCenterClient.cpp
         src/Configuration.cpp
