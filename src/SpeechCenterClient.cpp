@@ -13,6 +13,40 @@
 #include <fstream>
 
 
+class Audio {
+public:
+    explicit Audio(const std::string &audioPath);
+    ~Audio();
+    const int16_t* getData() const {return data;}
+    int16_t* getData() {return data;}
+    int64_t getLengthInFrames() const {return length;}
+    int64_t getLengthInBytes() const {length*getBytesPerSamples();}
+
+private:
+    int16_t *data{nullptr};
+    int64_t length{0};
+
+    int64_t getBytesPerSamples() const {return sizeof(*data);}
+};
+
+
+Audio::Audio(const std::string &audioPath) {
+    SndfileHandle sndfileHandle(audioPath);
+    if (sndfileHandle.channels() != 1)
+        throw GrpcException("Audio file must be mono");
+    if (sndfileHandle.samplerate() != 8000)
+        throw GrpcException("Audio file must be 8 kHz.");
+
+    length = sndfileHandle.frames();
+    data = new int16_t[length];
+    length = sndfileHandle.read(data, length);
+    INFO("Read {} samples with {} bytes per sample", sndfileHandle.frames(), getBytesPerSamples());
+}
+
+Audio::~Audio() {
+    delete data;
+}
+
 SpeechCenterClient::SpeechCenterClient() = default;
 SpeechCenterClient::~SpeechCenterClient() = default;
 
@@ -33,37 +67,29 @@ void SpeechCenterClient::connect(const Configuration& configuration) {
     INFO("R: {} ",  response.DebugString());
     INFO("Stream created");
     INFO("State: {} ",  toascii(channel->GetState(true)));
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     INFO("State: {} ",  toascii(channel->GetState(true)));
-    INFO("Metadata:");
-    stream->WaitForInitialMetadata();
-
-    for (const auto &data : context.GetServerTrailingMetadata())
-        std::cout << data.first << " = " << data.second;
-
-    for (const auto &data : context.GetServerInitialMetadata())
-        std::cout << data.first << " = " <<  data.second;
+//    INFO("Metadata:");
+//    stream->WaitForInitialMetadata();
+//
+//    for (const auto &data : context.GetServerTrailingMetadata())
+//        std::cout << data.first << " = " << data.second;
+//
+//    for (const auto &data : context.GetServerInitialMetadata())
+//        std::cout << data.first << " = " <<  data.second;
 
     initMessage = std::make_unique<csr_grpc_gateway::RecognitionInit>();
     initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
     initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
-    INFO("Init message created:  {} ",  initMessage->DebugString());
     std::this_thread::sleep_for(std::chrono::seconds(3));
 }
 
+
+
+
 void SpeechCenterClient::process(const std::string &audioPath) {
 
-    SndfileHandle sndfileHandle(audioPath);
-    if (sndfileHandle.channels() != 1)
-        throw GrpcException("Audio file must be mono");
-    if (sndfileHandle.samplerate() != 8000)
-        throw GrpcException("Audio file must be 8 kHz.");
-
-    int16_t audioData[sndfileHandle.frames()];
-    sndfileHandle.read(audioData, sndfileHandle.frames());
-
-    INFO("Read {} samples with {} bytes per sample", sndfileHandle.frames(), sizeof(*audioData));
-
+    Audio audio(audioPath);
 
     csr_grpc_gateway::RecognitionRequest initRequest;
 
@@ -75,7 +101,7 @@ void SpeechCenterClient::process(const std::string &audioPath) {
             ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
         } else {
             csr_grpc_gateway::RecognitionRequest audioRequest;
-            audioRequest.set_audio(static_cast<void*>(audioData), sndfileHandle.frames()*sizeof(*audioData));
+            audioRequest.set_audio(static_cast<void*>(audio.getData()), audio.getLengthInBytes());
             if (!stream->Write(audioRequest)) {
                 auto status = stream->Finish();
                 ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
@@ -86,7 +112,9 @@ void SpeechCenterClient::process(const std::string &audioPath) {
         stream->WritesDone();
         stream.reset();
     }
+    INFO("Response: {}", response.DebugString());
     recognizer.reset();
+
 }
 
 
