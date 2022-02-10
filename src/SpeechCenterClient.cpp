@@ -20,7 +20,7 @@ public:
     const int16_t* getData() const {return data;}
     int16_t* getData() {return data;}
     int64_t getLengthInFrames() const {return length;}
-    int64_t getLengthInBytes() const {length*getBytesPerSamples();}
+    int64_t getLengthInBytes() const {return length*getBytesPerSamples();}
 
 private:
     int16_t *data{nullptr};
@@ -46,6 +46,7 @@ Audio::Audio(const std::string &audioPath) {
 Audio::~Audio() {
     delete data;
 }
+
 
 SpeechCenterClient::SpeechCenterClient() = default;
 SpeechCenterClient::~SpeechCenterClient() = default;
