@@ -1,5 +1,6 @@
 [requires]
-grpc/1.39.1
+protobuf/3.19.2
+grpc/1.43.0
 cxxopts/3.0.0
 spdlog/1.9.2
 libsndfile/1.0.31
