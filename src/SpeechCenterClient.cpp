@@ -62,21 +62,18 @@ void SpeechCenterClient::process(const Configuration &configuration) {
 
     INFO("Stream created");
     INFO("State: {} ",  toascii(channel->GetState(true)));
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     INFO("State: {} ",  toascii(channel->GetState(true)));
-//    INFO("Metadata:");
-//    stream->WaitForInitialMetadata();
-//
-//    for (const auto &data : context.GetServerTrailingMetadata())
-//        std::cout << data.first << " = " << data.second;
-//
-//    for (const auto &data : context.GetServerInitialMetadata())
-//        std::cout << data.first << " = " <<  data.second;
+    INFO("Metadata:");
+
 
     initMessage = std::make_unique<csr_grpc_gateway::RecognitionInit>();
     initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
     initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+}
+
+void SpeechCenterClient::process(const std::string &audioPath) {
+
+    INFO("Running SpeechCenterClient::process!");
 
     Audio audio(configuration.getAudioPath());
 
@@ -89,6 +86,7 @@ void SpeechCenterClient::process(const Configuration &configuration) {
             auto status = stream->Finish();
             ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
         } else {
+            INFO("Audio request...");
             csr_grpc_gateway::RecognitionRequest audioRequest;
             audioRequest.set_audio(static_cast<void*>(audio.getData()), audio.getLengthInBytes());
             if (!stream->Write(audioRequest)) {
@@ -96,14 +94,20 @@ void SpeechCenterClient::process(const Configuration &configuration) {
                 ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
             }
         }
-        std::this_thread::sleep_for(std::chrono::seconds(3));
 
         stream->WritesDone();
+        grpc::Status status = stream->Finish();
+
+        if(status.ok()) {
+            INFO("FINAL RESPONSE: -{}- ",  response.text());
+        }
+        else {
+            ERROR("Audio response error");
+        }
+
         stream.reset();
     }
-    INFO("Response: {}", response.DebugString());
     recognizer.reset();
-
 }
 
 void SpeechCenterClient::createRecognizer() {
