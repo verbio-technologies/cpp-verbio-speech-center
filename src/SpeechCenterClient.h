@@ -14,8 +14,7 @@ public:
     SpeechCenterClient();
     ~SpeechCenterClient();
 
-    void connect(const Configuration& configuration);
-    void process(const std::string &audioPath);
+    void run(const Configuration& configuration);
 
 private:
     std::shared_ptr<grpc::Channel> channel;
@@ -24,6 +23,10 @@ private:
     std::unique_ptr<csr_grpc_gateway::SpeechRecognizer::Stub> recognizer;
     std::unique_ptr<grpc::ClientWriter<csr_grpc_gateway::RecognitionRequest>> stream;
     csr_grpc_gateway::RecognitionResponse response;
+
+    void connect(const Configuration& configuration);
+    void process(const Configuration &configuration);
+
 
     static csr_grpc_gateway::RecognitionResource_Model convertTopicModel(const std::string &modelName);
 
@@ -41,6 +44,8 @@ private:
 
     std::shared_ptr<grpc::Channel>
     createChannel(const Configuration &configuration);
+
+    void createRecognizer();
 };
 
 

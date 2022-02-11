@@ -54,18 +54,12 @@ SpeechCenterClient::~SpeechCenterClient() = default;
 
 void SpeechCenterClient::connect(const Configuration& configuration) {
     createChannel(configuration);
+    createRecognizer();
+}
 
-    INFO("State: {}", toascii(channel->GetState(true)));
-    INFO("Config JSON: {}", channel->GetServiceConfigJSON());
-
-    recognizer = csr_grpc_gateway::SpeechRecognizer::NewStub(channel);
-
-    INFO( "recognizer created");
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-
+void SpeechCenterClient::process(const Configuration &configuration) {
     stream = recognizer->RecognizeStream(&context, &response);
 
-    INFO("R: {} ",  response.DebugString());
     INFO("Stream created");
     INFO("State: {} ",  toascii(channel->GetState(true)));
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -83,14 +77,8 @@ void SpeechCenterClient::connect(const Configuration& configuration) {
     initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
     initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
     std::this_thread::sleep_for(std::chrono::seconds(3));
-}
 
-
-
-
-void SpeechCenterClient::process(const std::string &audioPath) {
-
-    Audio audio(audioPath);
+    Audio audio(configuration.getAudioPath());
 
     csr_grpc_gateway::RecognitionRequest initRequest;
 
@@ -118,6 +106,12 @@ void SpeechCenterClient::process(const std::string &audioPath) {
 
 }
 
+void SpeechCenterClient::createRecognizer() {
+    recognizer = csr_grpc_gateway::SpeechRecognizer::NewStub(channel);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    INFO("Recognizer created");
+}
+
 
 std::shared_ptr<grpc::Channel>
 SpeechCenterClient::createChannel(const Configuration &configuration) {
@@ -137,7 +131,8 @@ SpeechCenterClient::createChannel(const Configuration &configuration) {
             WARN("Channel could get ready.");
             return channel;
         }
-    INFO("Channel is ready");
+    INFO("Channel is ready. State {}", toascii(channel->GetState(true)));
+    INFO("Channel configuration: {}", channel->GetServiceConfigJSON());
     return channel;
 }
 
@@ -187,6 +182,11 @@ std::string SpeechCenterClient::readFileContent(const std::string &path) {
         throw IOError("Unable to open '" + path + "'");
     }
     return content;
+}
+
+void SpeechCenterClient::run(const Configuration &configuration) {
+    connect(configuration);
+    process(configuration);
 }
 
 
