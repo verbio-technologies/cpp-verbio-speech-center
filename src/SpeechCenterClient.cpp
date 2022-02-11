@@ -88,10 +88,14 @@ void SpeechCenterClient::process(const std::string &audioPath) {
         }
 
         stream->WritesDone();
+        grpc::Status status = stream->Finish();
 
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-
-        INFO("FINAL RESPONSE: -{}- ",  response.text());
+        if(status.ok()) {
+            INFO("FINAL RESPONSE: -{}- ",  response.text());
+        }
+        else {
+            ERROR("Audio response error");
+        }
 
         stream.reset();
     }
