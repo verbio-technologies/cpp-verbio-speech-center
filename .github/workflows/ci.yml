@@ -1,0 +1,24 @@
+name: C/C++
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Install Conan
+        run: pip install conan && conan --version
+      - name: Install CMake
+        run: conan install cmake/3.16.4@ -g=virtualrunenv
+      - name: Build
+        run: conan install -s compiler.libcxx=libstdc++11 . && cmake . && cmake --build ./ --target all --parallel
+      - name: Test
+        run: ctest --parallel
+      - name: Exec
+        run: ./cli_client --help

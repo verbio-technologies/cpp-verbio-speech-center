@@ -3,6 +3,8 @@ grpc/1.39.1
 cxxopts/3.0.0
 spdlog/1.9.2
 libsndfile/1.0.31
+gtest/1.10.0
 
 [generators]
 cmake_find_package
+

@@ -13,61 +13,69 @@
 #include <fstream>
 
 
-SpeechCenterClient::SpeechCenterClient() = default;
-SpeechCenterClient::~SpeechCenterClient() = default;
+class Audio {
+public:
+    explicit Audio(const std::string &audioPath);
+    ~Audio();
+    const int16_t* getData() const {return data;}
+    int16_t* getData() {return data;}
+    int64_t getLengthInFrames() const {return length;}
+    int64_t getLengthInBytes() const {return length*getBytesPerSamples();}
+
+private:
+    int16_t *data{nullptr};
+    int64_t length{0};
+
+    int64_t getBytesPerSamples() const {return sizeof(*data);}
+};
 
 
-void SpeechCenterClient::connect(const Configuration& configuration) {
-    createChannel(configuration);
-
-    INFO("State: {}", toascii(channel->GetState(true)));
-    INFO("Config JSON: {}", channel->GetServiceConfigJSON());
-
-    recognizer = csr_grpc_gateway::SpeechRecognizer::NewStub(channel);
-
-    INFO( "recognizer created");
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-
-    stream = recognizer->RecognizeStream(&context, &response);
-
-    INFO("R: {} ",  response.DebugString());
-    INFO("Stream created");
-    INFO("State: {} ",  toascii(channel->GetState(true)));
-    INFO("State: {} ",  toascii(channel->GetState(true)));
-    INFO("Metadata:");
-
-    /*
-    stream->WaitForInitialMetadata();
-
-
-    for (const auto &data : context.GetServerTrailingMetadata())
-        std::cout << data.first << " = " << data.second;
-
-    for (const auto &data : context.GetServerInitialMetadata())
-        std::cout << data.first << " = " <<  data.second;
-    */
-
-    initMessage = std::make_unique<csr_grpc_gateway::RecognitionInit>();
-    initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
-    initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
-    INFO("Init message created:  {} ",  initMessage->DebugString());
-}
-
-void SpeechCenterClient::process(const std::string &audioPath) {
-
-    INFO("Running SpeechCenterClient::process!");
-
+Audio::Audio(const std::string &audioPath) {
     SndfileHandle sndfileHandle(audioPath);
     if (sndfileHandle.channels() != 1)
         throw GrpcException("Audio file must be mono");
     if (sndfileHandle.samplerate() != 8000)
         throw GrpcException("Audio file must be 8 kHz.");
 
-    int16_t audioData[sndfileHandle.frames()];
-    sndfileHandle.read(audioData, sndfileHandle.frames());
+    length = sndfileHandle.frames();
+    data = new int16_t[length];
+    length = sndfileHandle.read(data, length);
+    INFO("Read {} samples with {} bytes per sample", sndfileHandle.frames(), getBytesPerSamples());
+}
 
-    INFO("Read {} samples with {} bytes per sample", sndfileHandle.frames(), sizeof(*audioData));
+Audio::~Audio() {
+    delete data;
+}
 
+
+SpeechCenterClient::SpeechCenterClient() = default;
+SpeechCenterClient::~SpeechCenterClient() = default;
+
+
+void SpeechCenterClient::connect(const Configuration& configuration) {
+    createChannel(configuration);
+    createRecognizer();
+}
+
+void SpeechCenterClient::process(const Configuration &configuration) {
+    stream = recognizer->RecognizeStream(&context, &response);
+
+    INFO("Stream created");
+    INFO("State: {} ",  toascii(channel->GetState(true)));
+    INFO("State: {} ",  toascii(channel->GetState(true)));
+    INFO("Metadata:");
+
+
+    initMessage = std::make_unique<csr_grpc_gateway::RecognitionInit>();
+    initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
+    initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
+}
+
+void SpeechCenterClient::process(const std::string &audioPath) {
+
+    INFO("Running SpeechCenterClient::process!");
+
+    Audio audio(configuration.getAudioPath());
 
     csr_grpc_gateway::RecognitionRequest initRequest;
 
@@ -80,7 +88,7 @@ void SpeechCenterClient::process(const std::string &audioPath) {
         } else {
             INFO("Audio request...");
             csr_grpc_gateway::RecognitionRequest audioRequest;
-            audioRequest.set_audio(static_cast<void*>(audioData), sndfileHandle.frames()*sizeof(*audioData));
+            audioRequest.set_audio(static_cast<void*>(audio.getData()), audio.getLengthInBytes());
             if (!stream->Write(audioRequest)) {
                 auto status = stream->Finish();
                 ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
@@ -99,8 +107,13 @@ void SpeechCenterClient::process(const std::string &audioPath) {
 
         stream.reset();
     }
-
     recognizer.reset();
+}
+
+void SpeechCenterClient::createRecognizer() {
+    recognizer = csr_grpc_gateway::SpeechRecognizer::NewStub(channel);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    INFO("Recognizer created");
 }
 
 
@@ -122,7 +135,8 @@ SpeechCenterClient::createChannel(const Configuration &configuration) {
             WARN("Channel could get ready.");
             return channel;
         }
-    INFO("Channel is ready");
+    INFO("Channel is ready. State {}", toascii(channel->GetState(true)));
+    INFO("Channel configuration: {}", channel->GetServiceConfigJSON());
     return channel;
 }
 
@@ -172,6 +186,11 @@ std::string SpeechCenterClient::readFileContent(const std::string &path) {
         throw IOError("Unable to open '" + path + "'");
     }
     return content;
+}
+
+void SpeechCenterClient::run(const Configuration &configuration) {
+    connect(configuration);
+    process(configuration);
 }
 
 
