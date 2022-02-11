@@ -8,6 +8,7 @@
 #include "verbio-speech-center.grpc.pb.h"
 #include "verbio-speech-center.pb.h"
 
+class Audio;
 
 class SpeechCenterClient {
 public:
@@ -40,12 +41,12 @@ private:
 
     static std::string readFileContent(const std::string &path);
 
-    static grpc::SslCredentialsOptions buildSslCredentialOptions(const Configuration &configuration);
-
     std::shared_ptr<grpc::Channel>
     createChannel(const Configuration &configuration);
 
     void createRecognizer();
+
+    void sendAudio(Audio &audio);
 };
 
 

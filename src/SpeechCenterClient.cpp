@@ -78,13 +78,7 @@ void SpeechCenterClient::process(const Configuration &configuration) {
             auto status = stream->Finish();
             ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
         } else {
-            INFO("Audio request...");
-            csr_grpc_gateway::RecognitionRequest audioRequest;
-            audioRequest.set_audio(static_cast<void*>(audio.getData()), audio.getLengthInBytes());
-            if (!stream->Write(audioRequest)) {
-                auto status = stream->Finish();
-                ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
-            }
+            sendAudio(audio);
         }
 
         stream->WritesDone();
@@ -100,6 +94,16 @@ void SpeechCenterClient::process(const Configuration &configuration) {
         stream.reset();
     }
     recognizer.reset();
+}
+
+void SpeechCenterClient::sendAudio(Audio &audio) {
+    INFO("Audio request...");
+    csr_grpc_gateway::RecognitionRequest audioRequest;
+    audioRequest.set_audio(static_cast<void*>(audio.getData()), audio.getLengthInBytes());
+    if (!stream->Write(audioRequest)) {
+        auto status = stream->Finish();
+        ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
+    }
 }
 
 void SpeechCenterClient::createRecognizer() {
