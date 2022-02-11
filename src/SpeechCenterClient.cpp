@@ -59,19 +59,11 @@ void SpeechCenterClient::connect(const Configuration& configuration) {
 
 void SpeechCenterClient::process(const Configuration &configuration) {
     stream = recognizer->RecognizeStream(&context, &response);
-
-    INFO("Stream created");
-    INFO("State: {} ",  toascii(channel->GetState(true)));
-    INFO("State: {} ",  toascii(channel->GetState(true)));
-    INFO("Metadata:");
-
+    INFO("Stream created. State {}",  toascii(channel->GetState(true)));
 
     initMessage = std::make_unique<csr_grpc_gateway::RecognitionInit>();
     initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
     initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
-}
-
-void SpeechCenterClient::process(const std::string &audioPath) {
 
     INFO("Running SpeechCenterClient::process!");
 
@@ -112,7 +104,6 @@ void SpeechCenterClient::process(const std::string &audioPath) {
 
 void SpeechCenterClient::createRecognizer() {
     recognizer = csr_grpc_gateway::SpeechRecognizer::NewStub(channel);
-    std::this_thread::sleep_for(std::chrono::seconds(3));
     INFO("Recognizer created");
 }
 
