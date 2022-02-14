@@ -172,11 +172,11 @@ std::string SpeechCenterClient::readFileContent(const std::string &path) {
     } else {
         throw IOError("Unable to open '" + path + "'");
     }
-    std::string trimmed_content = sanitize(content);
-    return trimmed_content;
+
+    return sanitize(content);
 }
 
-std::string SpeechCenterClient::sanitize(std::string &str) {
+std::string SpeechCenterClient::sanitize(std::string str) {
     size_t endpos = str.find_last_not_of("\r\n");
     if(endpos != std::string::npos) {
         str.substr(0,endpos+1).swap(str);

@@ -36,7 +36,7 @@ private:
     buildRecognitionParameters(const Configuration &configuration);
 
     static std::string readFileContent(const std::string &path);
-    static std::string sanitize(std::string &str);
+    static std::string sanitize(std::string str);
 
     static grpc::SslCredentialsOptions buildSslCredentialOptions(const Configuration &configuration);
 
