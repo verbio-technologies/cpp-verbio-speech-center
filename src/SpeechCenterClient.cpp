@@ -115,7 +115,7 @@ void SpeechCenterClient::createRecognizer() {
 std::shared_ptr<grpc::Channel>
 SpeechCenterClient::createChannel(const Configuration &configuration) {
     auto jwt = readFileContent(configuration.getTokenPath());
-    std::cout << "TOKEN:" << jwt << std::endl;
+    std::cout << "TOKEN: -" << jwt << "-" << std::endl;
     channel = grpc::CreateChannel(configuration.getHost(),
                                   grpc::CompositeChannelCredentials(
                                           grpc::SslCredentials(grpc::SslCredentialsOptions()),
@@ -177,10 +177,20 @@ std::string SpeechCenterClient::readFileContent(const std::string &path) {
         std::ostringstream oss;
         oss << ifs.rdbuf();
         content = oss.str();
+
     } else {
         throw IOError("Unable to open '" + path + "'");
     }
-    return content;
+
+    return sanitize(content);
+}
+
+std::string SpeechCenterClient::sanitize(std::string str) {
+    size_t endpos = str.find_last_not_of("\r\n");
+    if(endpos != std::string::npos) {
+        str.substr(0,endpos+1).swap(str);
+    }
+    return str;
 }
 
 void SpeechCenterClient::run(const Configuration &configuration) {

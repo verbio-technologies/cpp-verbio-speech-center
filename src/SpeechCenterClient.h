@@ -40,6 +40,7 @@ private:
     buildRecognitionParameters(const Configuration &configuration);
 
     static std::string readFileContent(const std::string &path);
+    static std::string sanitize(std::string str);
 
     std::shared_ptr<grpc::Channel>
     createChannel(const Configuration &configuration);
