@@ -1,6 +1,6 @@
 # C++ integration with the Verbio Speech Center
 
-This repository contains a python based example of how to use the Verbio Technologies Speech Center cloud.
+This repository contains a C++ example of how to use the Verbio Technologies Speech Center cloud.
 
 ## Requirements
 ### Starting requirements
