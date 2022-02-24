@@ -60,13 +60,20 @@ Usage:
 ./cli_client [OPTION...]
 
 -a file     Path to an audio file
--b file     Path to a BNF grammar
+-b file     Path to a BNF grammar (optional)
 -t arg      Topic to use when a grammar is not provided: generic, telco or banking. (default: generic)
 -l arg      Language: es-ES, en-US or pt-BR. (default: en-US)
 -T arg      Path to a token file
 -e arg      End point to send requests (default: speechcenter.verbio.com:2424)
 -h, --help  this help message
 ```
+
+ #### Example:
+ ```
+ ./cli_client -a audio.wav -t generic -l en-US -T your-speech-center.token 
+ [2022-02-24 18:16:16.908] [info] [SpeechCenterClient.cpp:88] FINAL RESPONSE: -Recognition results comes here- 
+ ```
+
 
 
 
