@@ -53,7 +53,7 @@ ctest
 ```
 ### Run the client
 The cli_client will be using the generated C++ code to connect to the Speech Center cloud to process you speech file.
-```shell
+```commandline
 ./>$ ./cli_client --help
 Verbio Technlogies S.L. - Speech Center client example
 Usage:
