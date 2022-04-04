@@ -53,18 +53,18 @@ ctest
 ```
 ### Run the client
 The cli_client will be using the generated C++ code to connect to the Speech Center cloud to process you speech file.
-```shell
+```commandline
 ./>$ ./cli_client --help
 Verbio Technlogies S.L. - Speech Center client example
 Usage:
 ./cli_client [OPTION...]
 
--a file     Path to an audio file
--b file     Path to a BNF grammar (optional)
--t arg      Topic to use when a grammar is not provided: generic, telco or banking. (default: generic)
--l arg      Language: es-ES, en-US or pt-BR. (default: en-US)
--T arg      Path to a token file
--e arg      End point to send requests (default: speechcenter.verbio.com:2424)
+-a file     Path to a .wav audio in 8kHz and PCM16 encoding to use for the recognition
+-b file     Path to the ABNF grammar file to use for the recognition (optional)
+-t arg      Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO (default: generic)
+-l arg      Language to use for the recognition: es-ES, en-US or pt-BR. (default: en-US)
+-T arg      Path to the authentication token file
+-e arg      End point to send requests (The URL of the host or server trying to reach) (default: speechcenter.verbio.com:2424)
 -h, --help  this help message
 ```
 
