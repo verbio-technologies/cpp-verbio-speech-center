@@ -5,7 +5,7 @@
 #include <cxxopts.hpp>
 
 
-Configuration::Configuration() : host("speechcenter.verbio.com:2424") , topic("generic"), language("en-US")
+Configuration::Configuration() : host("csr.api.speechcenter.verbio.com") , topic("generic"), language("en-US")
 {}
 Configuration::Configuration(int argc, char **argv) : Configuration() {
     parse(argc, argv);
