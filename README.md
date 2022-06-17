@@ -29,7 +29,7 @@ The steps to compile the code are standard to any other conan-cmake project prog
 ### Install dependencies
 The repository is already configure with conan dependencies that can be installed just by executing the standard conan install command:
 ```
-conant install .
+conan install .
 ```
 
 ### Generate the gRPC code for C++
