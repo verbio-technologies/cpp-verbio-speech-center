@@ -146,7 +146,7 @@ std::unique_ptr<csr_grpc_gateway::RecognitionResource>
 SpeechCenterClient::buildRecognitionResource(const Configuration &configuration) {
     std::unique_ptr<csr_grpc_gateway::RecognitionResource> resource (new csr_grpc_gateway::RecognitionResource());
     if (configuration.getGrammarPath().empty())
-        resource->set_model(convertTopicModel(configuration.getTopic()));
+        resource->set_topic(convertTopicModel(configuration.getTopic()));
     else
         resource->set_inline_grammar(loadGrammarContent(configuration.getGrammarPath()));
     return resource;

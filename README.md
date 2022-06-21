@@ -8,8 +8,8 @@ In order to compile the source code you will need g++>=7, cmake-3.>= 20 and cona
 
 Before you start you will need: 
 1. Speech center proto file (provided in this repository)
-2. Platform access token (provided to you by Verbio Technologies) if you do not have one, ask for one [here](https://www.speechcenter.verbio.com/contact)
-3. Speech center endpoint (https://www.speech-center.verbio.com:2424)
+2. Platform access token (provided to you by Verbio Technologies) if you do not have one, register on our [website](https://www.speechcenter.verbio.com)
+3. Speech center CSR endpoint (csr.api.speechcenter.verbio.com)
 
 ### Conan requirements
 ```shell
@@ -29,7 +29,7 @@ The steps to compile the code are standard to any other conan-cmake project prog
 ### Install dependencies
 The repository is already configure with conan dependencies that can be installed just by executing the standard conan install command:
 ```
-conant install .
+conan install .
 ```
 
 ### Generate the gRPC code for C++
@@ -64,7 +64,7 @@ Usage:
 -t arg      Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO (default: generic)
 -l arg      Language to use for the recognition: es-ES, en-US or pt-BR. (default: en-US)
 -T arg      Path to the authentication token file
--e arg      End point to send requests (The URL of the host or server trying to reach) (default: speechcenter.verbio.com:2424)
+-e arg      End point to send requests (The URL of the host or server trying to reach) (default: csr.api.speechcenter.verbio.com)
 -h, --help  this help message
 ```
 
