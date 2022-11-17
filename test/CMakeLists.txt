@@ -1,4 +1,6 @@
 
+include_directories(${PROJECT_SOURCE_DIR}/headers)
+
 find_package(GTest REQUIRED)
 add_executable(test_commandLine
         test_commandLine.cpp)

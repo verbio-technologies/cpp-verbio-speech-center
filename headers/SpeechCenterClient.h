@@ -5,8 +5,8 @@
 
 #include <grpcpp/security/credentials.h>
 #include <grpcpp/impl/codegen/client_context.h>
-#include "verbio-speech-center.grpc.pb.h"
-#include "verbio-speech-center.pb.h"
+#include "recognition.grpc.pb.h"
+#include "recognition.pb.h"
 
 class Audio;
 
@@ -20,24 +20,28 @@ public:
 private:
     std::shared_ptr<grpc::Channel> channel;
     grpc::ClientContext context;
-    std::unique_ptr<csr_grpc_gateway::RecognitionInit> initMessage;
-    std::unique_ptr<csr_grpc_gateway::SpeechRecognizer::Stub> recognizer;
-    std::unique_ptr<grpc::ClientWriter<csr_grpc_gateway::RecognitionRequest>> stream;
-    csr_grpc_gateway::RecognitionResponse response;
+    std::unique_ptr<speechcenter::recognizer::v1::RecognitionConfig> configMessage;
+    std::unique_ptr<speechcenter::recognizer::v1::Recognizer::Stub> recognizer;
+    std::unique_ptr<grpc::ClientReaderWriter<speechcenter::recognizer::v1::RecognitionStreamingRequest,
+            speechcenter::recognizer::v1::RecognitionStreamingResponse>> stream;
+    speechcenter::recognizer::v1::RecognitionStreamingResponse response;
 
     void connect(const Configuration& configuration);
     void process(const Configuration &configuration);
 
 
-    static csr_grpc_gateway::RecognitionResource_Model convertTopicModel(const std::string &modelName);
+    static speechcenter::recognizer::v1::RecognitionResource_Model convertTopicModel(const std::string &modelName);
 
-    static std::string loadGrammarContent(const std::string &grammarPath);
+    // static std::string loadGrammarContent(const std::string &grammarPath);
 
-    static std::unique_ptr<csr_grpc_gateway::RecognitionResource>
+    static std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource>
     buildRecognitionResource(const Configuration &configuration);
 
-    static std::unique_ptr<csr_grpc_gateway::RecognitionParameters>
+    static std::unique_ptr<speechcenter::recognizer::v1::RecognitionParameters>
     buildRecognitionParameters(const Configuration &configuration);
+
+    static std::unique_ptr<speechcenter::recognizer::v1::PCM>
+    buildPCM(const std::string &sampleRate);
 
     static std::string readFileContent(const std::string &path);
     static std::string sanitize(std::string str);

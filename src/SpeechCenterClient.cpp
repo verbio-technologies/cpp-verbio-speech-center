@@ -58,23 +58,23 @@ void SpeechCenterClient::connect(const Configuration& configuration) {
 }
 
 void SpeechCenterClient::process(const Configuration &configuration) {
-    stream = recognizer->RecognizeStream(&context, &response);
+    stream = recognizer->StreamingRecognize(&context);
     INFO("Stream created. State {}",  toascii(channel->GetState(true)));
 
-    initMessage = std::make_unique<csr_grpc_gateway::RecognitionInit>();
-    initMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
-    initMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
+    configMessage = std::make_unique<speechcenter::recognizer::v1::RecognitionConfig>();
+    configMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
+    configMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
 
     INFO("Running SpeechCenterClient::process!");
 
     Audio audio(configuration.getAudioPath());
 
-    csr_grpc_gateway::RecognitionRequest initRequest;
+    speechcenter::recognizer::v1::RecognitionStreamingRequest recognitionConfig;
 
-    initRequest.set_allocated_init(new csr_grpc_gateway::RecognitionInit(*initMessage));
+    recognitionConfig.set_allocated_config(new speechcenter::recognizer::v1::RecognitionConfig(*configMessage));
     if (stream) {
-        INFO("Sending: \n{} ",  initRequest.DebugString());
-        if (!stream->Write(initRequest)) {
+        INFO("Sending: \n{} ",  recognitionConfig.DebugString());
+        if (!stream->Write(recognitionConfig)) {
             auto status = stream->Finish();
             ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
         } else {
@@ -85,10 +85,16 @@ void SpeechCenterClient::process(const Configuration &configuration) {
         grpc::Status status = stream->Finish();
 
         if(status.ok()) {
-            INFO("FINAL RESPONSE: -{}- ",  response.text());
+            std::string resultText;
+
+            speechcenter::recognizer::v1::RecognitionAlternative firstAlternative = response.result().alternatives().Get(0);
+            for(speechcenter::recognizer::v1::WordInfo word : firstAlternative.words() ) {
+                resultText.append(word.word() + " ");
+            }
+            INFO("RESPONSE:\n{}\n\n",  resultText);
         }
         else {
-            ERROR("Audio response error");
+            ERROR("RESPONSE ERROR!\n\n");
         }
 
         stream.reset();
@@ -97,17 +103,23 @@ void SpeechCenterClient::process(const Configuration &configuration) {
 }
 
 void SpeechCenterClient::sendAudio(Audio &audio) {
+    int64_t lengthInBytes = audio.getLengthInBytes();
+
+    INFO("Audio bytes: " + std::to_string(lengthInBytes));
     INFO("Audio request...");
-    csr_grpc_gateway::RecognitionRequest audioRequest;
-    audioRequest.set_audio(static_cast<void*>(audio.getData()), audio.getLengthInBytes());
+    speechcenter::recognizer::v1::RecognitionStreamingRequest audioRequest;
+    audioRequest.set_audio(static_cast<void*>(audio.getData()), lengthInBytes);
     if (!stream->Write(audioRequest)) {
         auto status = stream->Finish();
         ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
     }
+    else {
+        INFO("Sending audio...");
+    }
 }
 
 void SpeechCenterClient::createRecognizer() {
-    recognizer = csr_grpc_gateway::SpeechRecognizer::NewStub(channel);
+    recognizer = speechcenter::recognizer::v1::Recognizer::NewStub(channel);
     INFO("Recognizer created");
 }
 
@@ -117,12 +129,14 @@ SpeechCenterClient::createChannel(const Configuration &configuration) {
     auto jwt = readFileContent(configuration.getTokenPath());
     std::cout << "TOKEN: -" << jwt << "-" << std::endl;
     channel = grpc::CreateChannel(configuration.getHost(),
-                                  grpc::CompositeChannelCredentials(
+                                  grpc::InsecureChannelCredentials()
+                                  /*grpc::CompositeChannelCredentials(
                                           grpc::SslCredentials(grpc::SslCredentialsOptions()),
                                           grpc::AccessTokenCredentials(jwt)
-                                  )
+                                  )*/
     );
-    context.set_credentials(grpc::AccessTokenCredentials(jwt));
+    //context.set_credentials(grpc::AccessTokenCredentials(jwt));
+    context.AddMetadata("authorization",  "Bearer" + jwt); // TODO: delete
     channel->WaitForConnected(std::chrono::system_clock::now() + std::chrono::seconds(5));
     if (channel->GetState(false) != GRPC_CHANNEL_READY)
         if (!channel->WaitForStateChange(GRPC_CHANNEL_READY,
@@ -135,35 +149,54 @@ SpeechCenterClient::createChannel(const Configuration &configuration) {
     return channel;
 }
 
-std::unique_ptr<csr_grpc_gateway::RecognitionParameters>
+std::unique_ptr<speechcenter::recognizer::v1::RecognitionParameters>
 SpeechCenterClient::buildRecognitionParameters(const Configuration &configuration) {
-    std::unique_ptr<csr_grpc_gateway::RecognitionParameters> parameters (new csr_grpc_gateway::RecognitionParameters());
+    std::unique_ptr<speechcenter::recognizer::v1::RecognitionParameters> parameters (new speechcenter::recognizer::v1::RecognitionParameters());
     parameters->set_language(configuration.getLanguage());
+    parameters->set_allocated_pcm(buildPCM(configuration.getSampleRate()).release());
     return parameters;
 }
+std::unique_ptr<speechcenter::recognizer::v1::PCM>
+SpeechCenterClient::buildPCM(const std::string &sampleRate) {
+    std::unique_ptr<speechcenter::recognizer::v1::PCM> pcm (new speechcenter::recognizer::v1::PCM());
+    uint32_t sampleRateHz;
+    if(sampleRate == "16000" || sampleRate == "")
+        sampleRateHz = 16000;
+    else
+        throw UnsupportedSampleRate(sampleRate);
+    pcm->set_sample_rate_hz(sampleRateHz);
+    return pcm;
+}
 
-std::unique_ptr<csr_grpc_gateway::RecognitionResource>
+std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource>
 SpeechCenterClient::buildRecognitionResource(const Configuration &configuration) {
-    std::unique_ptr<csr_grpc_gateway::RecognitionResource> resource (new csr_grpc_gateway::RecognitionResource());
+    std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource> resource (new speechcenter::recognizer::v1::RecognitionResource());
+    /*
     if (configuration.getGrammarPath().empty())
         resource->set_topic(convertTopicModel(configuration.getTopic()));
     else
         resource->set_inline_grammar(loadGrammarContent(configuration.getGrammarPath()));
+    */
+    resource->set_topic(convertTopicModel(configuration.getTopic()));
     return resource;
 }
 
+/*
 std::string SpeechCenterClient::loadGrammarContent(const std::string &grammarPath) {
     return readFileContent(grammarPath);
 }
+*/
 
-csr_grpc_gateway::RecognitionResource_Model SpeechCenterClient::convertTopicModel(const std::string &modelName) {
-    csr_grpc_gateway::RecognitionResource_Model model;
+speechcenter::recognizer::v1::RecognitionResource_Model SpeechCenterClient::convertTopicModel(const std::string &modelName) {
+    speechcenter::recognizer::v1::RecognitionResource_Model model;
     if (modelName == "generic")
-        model = csr_grpc_gateway::RecognitionResource_Model_GENERIC;
+        model = speechcenter::recognizer::v1::RecognitionResource_Model_GENERIC;
     else if (modelName == "banking")
-        model = csr_grpc_gateway::RecognitionResource_Model_BANKING;
+        model = speechcenter::recognizer::v1::RecognitionResource_Model_BANKING;
     else if (modelName == "telco")
-        model = csr_grpc_gateway::RecognitionResource_Model_TELCO;
+        model = speechcenter::recognizer::v1::RecognitionResource_Model_TELCO;
+    else if (modelName == "insurance")
+        model = speechcenter::recognizer::v1::RecognitionResource_Model_INSURANCE;
     else
         throw UnknownTopicModel(modelName);
     return model;
