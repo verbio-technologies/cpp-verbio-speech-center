@@ -55,11 +55,13 @@ SpeechCenterClient::~SpeechCenterClient() = default;
 void SpeechCenterClient::connect(const Configuration& configuration) {
     createChannel(configuration);
     createRecognizer();
+
+    stream = recognizer->StreamingRecognize(&context);
+    INFO("Stream created. State {}",  toascii(channel->GetState(true)));
 }
 
 void SpeechCenterClient::process(const Configuration &configuration) {
-    stream = recognizer->StreamingRecognize(&context);
-    INFO("Stream created. State {}",  toascii(channel->GetState(true)));
+    std::unique_ptr<speechcenter::recognizer::v1::RecognitionConfig> configMessage;
 
     configMessage = std::make_unique<speechcenter::recognizer::v1::RecognitionConfig>();
     configMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
@@ -82,19 +84,34 @@ void SpeechCenterClient::process(const Configuration &configuration) {
         }
 
         stream->WritesDone();
-        grpc::Status status = stream->Finish();
 
-        if(status.ok()) {
-            std::string resultText;
+        speechcenter::recognizer::v1::RecognitionStreamingResponse response;
+        std::string resultText;
 
-            speechcenter::recognizer::v1::RecognitionAlternative firstAlternative = response.result().alternatives().Get(0);
-            for(speechcenter::recognizer::v1::WordInfo word : firstAlternative.words() ) {
-                resultText.append(word.word() + " ");
+        uint64_t i;
+
+        while(stream->Read(&response)) {
+            //INFO("Processing response {}...", std::to_string(i));
+
+            if (!response.result().alternatives().empty()) {
+                speechcenter::recognizer::v1::RecognitionAlternative firstAlternative = response.result().alternatives().Get(0);
+                for(speechcenter::recognizer::v1::WordInfo word : firstAlternative.words() ) {
+                    resultText.append(word.word() + " ");
+                }
             }
+            else {
+                //WARN("No recognition result alternatives!");
+            }
+
+            ++i;
+        }
+
+        grpc::Status status = stream->Finish();
+        if(status.ok()) {
             INFO("RESPONSE:\n{}\n\n",  resultText);
         }
         else {
-            ERROR("RESPONSE ERROR!\n\n");
+            ERROR("RESPONSE ERROR!\n\n{}\n\n",  resultText);
         }
 
         stream.reset();

@@ -20,11 +20,9 @@ public:
 private:
     std::shared_ptr<grpc::Channel> channel;
     grpc::ClientContext context;
-    std::unique_ptr<speechcenter::recognizer::v1::RecognitionConfig> configMessage;
     std::unique_ptr<speechcenter::recognizer::v1::Recognizer::Stub> recognizer;
     std::unique_ptr<grpc::ClientReaderWriter<speechcenter::recognizer::v1::RecognitionStreamingRequest,
             speechcenter::recognizer::v1::RecognitionStreamingResponse>> stream;
-    speechcenter::recognizer::v1::RecognitionStreamingResponse response;
 
     void connect(const Configuration& configuration);
     void process(const Configuration &configuration);
