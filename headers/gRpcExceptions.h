@@ -30,6 +30,11 @@ public:
     explicit UnknownTopicModel(const std::string &topic);
 };
 
+class UnsupportedSampleRate : public GrpcException {
+public:
+    explicit UnsupportedSampleRate(const std::string &sampleRate);
+};
+
 class IOError : public GrpcException {
 public:
     explicit IOError(const std::string &message);

@@ -20,6 +20,7 @@ public:
     std::string getTopic() const;
     std::string getHost() const;
     std::string getLanguage() const;
+    std::string getSampleRate() const;
     std::string getTokenPath() const;
     std::string getGrammarPath() const;
 
@@ -27,6 +28,7 @@ private:
 
 
     std::string language;
+    std::string sampleRate;
     std::string topic;
     std::string grammarPath;
     std::string audioPath;
