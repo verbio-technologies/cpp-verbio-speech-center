@@ -65,8 +65,7 @@ RecognitionClient::createChannel(const Configuration &configuration) {
                     grpc::AccessTokenCredentials(jwt)
             )
     );
-    //context.set_credentials(grpc::AccessTokenCredentials(jwt));
-    context.AddMetadata("authorization",  "Bearer" + jwt); // TODO: delete
+    context.set_credentials(grpc::AccessTokenCredentials(jwt));
     channel->WaitForConnected(std::chrono::system_clock::now() + std::chrono::seconds(5));
     if (channel->GetState(false) != GRPC_CHANNEL_READY)
         if (!channel->WaitForStateChange(GRPC_CHANNEL_READY,
