@@ -3,7 +3,7 @@ include_directories(${PROJECT_SOURCE_DIR}/headers)
 
 add_library(speech-center-client STATIC
         gRpcExceptions.cpp
-        SpeechCenterClient.cpp
+        RecognitionClient.cpp
         Configuration.cpp
         )
 target_link_libraries(speech-center-client PUBLIC speech-center-grpc cxxopts::cxxopts spdlog::spdlog SndFile::sndfile)

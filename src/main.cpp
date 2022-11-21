@@ -1,10 +1,10 @@
 
 #include "Configuration.h"
-#include "SpeechCenterClient.h"
+#include "RecognitionClient.h"
 
 
 int main(int argc, char* argv[]) {
     Configuration configuration(argc, argv);
-    SpeechCenterClient client;
-    client.run(configuration);
+    RecognitionClient client(configuration);
+    client.connect(configuration);
 }
