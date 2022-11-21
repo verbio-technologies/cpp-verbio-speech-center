@@ -92,6 +92,7 @@ void RecognitionClient::connect(const Configuration& configuration) {
     std::thread writer([stream, configuration]() {
         INFO("WRITE: STARTING...");
         speechcenter::recognizer::v1::RecognitionStreamingRequest recognitionConfig = buildRecognitionConfig(configuration);
+        INFO("Sending config: \n{} ",  recognitionConfig.DebugString());
         bool streamFail = !stream->Write(recognitionConfig);
         if(streamFail) {
             auto status = stream->Finish();
