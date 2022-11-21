@@ -87,7 +87,7 @@ void RecognitionClient::connect(const Configuration& configuration) {
 
     // Write
 
-    std::thread writer([stream, configuration]() {
+    std::thread writer([stream, &configuration]() {
         INFO("WRITE: STARTING...");
         speechcenter::recognizer::v1::RecognitionStreamingRequest recognitionConfig = buildRecognitionConfig(configuration);
         INFO("Sending config: \n{} ",  recognitionConfig.DebugString());
@@ -116,28 +116,22 @@ void RecognitionClient::connect(const Configuration& configuration) {
     INFO("READ: STARTING...");
 
     speechcenter::recognizer::v1::RecognitionStreamingResponse response;
-    std::string resultText;
 
     while(stream->Read(&response)) {
-        //INFO("Processing response {}...", std::to_string(i));
         if (!response.result().alternatives().empty()) {
             speechcenter::recognizer::v1::RecognitionAlternative firstAlternative = response.result().alternatives().Get(0);
             for(speechcenter::recognizer::v1::WordInfo word : firstAlternative.words() ) {
-                resultText.append(word.word() + " ");
+                INFO("{}", word.word());
             }
         }
         else {
-            //WARN("No recognition result alternatives!");
-            //resultText.append(".");
+            WARN("No recognition result alternatives!");
         }
     }
     writer.join();
     grpc::Status status = stream->Finish();
-    if(status.ok()) {
-        INFO("RESPONSE:\n{}\n\n",  resultText);
-    }
-    else {
-        ERROR("RESPONSE ERROR!\n\n{}\n\n",  resultText);
+    if(!status.ok()) {
+        ERROR("RESPONSE ERROR!\n\n");
     }
 }
 
@@ -177,11 +171,12 @@ RecognitionClient::buildRecognitionParameters(const Configuration &configuration
     parameters->set_allocated_pcm(buildPCM(configuration.getSampleRate()).release());
     return parameters;
 }
+
 std::unique_ptr<speechcenter::recognizer::v1::PCM>
 RecognitionClient::buildPCM(const std::string &sampleRate) {
     std::unique_ptr<speechcenter::recognizer::v1::PCM> pcm (new speechcenter::recognizer::v1::PCM());
     uint32_t sampleRateHz;
-    if(sampleRate == "16000" || sampleRate == "")
+    if(sampleRate == "16000" || sampleRate.empty())
         sampleRateHz = 16000;
     else
         throw UnsupportedSampleRate(sampleRate);
@@ -192,21 +187,10 @@ RecognitionClient::buildPCM(const std::string &sampleRate) {
 std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource>
 RecognitionClient::buildRecognitionResource(const Configuration &configuration) {
     std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource> resource (new speechcenter::recognizer::v1::RecognitionResource());
-    /*
-    if (configuration.getGrammarPath().empty())
-        resource->set_topic(convertTopicModel(configuration.getTopic()));
-    else
-        resource->set_inline_grammar(loadGrammarContent(configuration.getGrammarPath()));
-    */
+
     resource->set_topic(convertTopicModel(configuration.getTopic()));
     return resource;
 }
-
-/*
-std::string RecognitionClient::loadGrammarContent(const std::string &grammarPath) {
-    return readFileContent(grammarPath);
-}
-*/
 
 speechcenter::recognizer::v1::RecognitionResource_Model RecognitionClient::convertTopicModel(const std::string &modelName) {
     speechcenter::recognizer::v1::RecognitionResource_Model model;

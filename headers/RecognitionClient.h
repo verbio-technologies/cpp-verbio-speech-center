@@ -25,8 +25,6 @@ private:
 
     static speechcenter::recognizer::v1::RecognitionResource_Model convertTopicModel(const std::string &modelName);
 
-    // static std::string loadGrammarContent(const std::string &grammarPath);
-
     static speechcenter::recognizer::v1::RecognitionStreamingRequest
         buildRecognitionConfig(const Configuration& configuration);
 
@@ -47,12 +45,6 @@ private:
 
     std::shared_ptr<grpc::Channel>
     createChannel(const Configuration &configuration);
-
-    void createRecognizer();
-
-    void sendAudio(Audio &audio);
 };
-
-
 
 #endif
