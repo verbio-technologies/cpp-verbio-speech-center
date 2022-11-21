@@ -60,11 +60,10 @@ RecognitionClient::createChannel(const Configuration &configuration) {
     auto jwt = readFileContent(configuration.getTokenPath());
     std::cout << "TOKEN: -" << jwt << "-" << std::endl;
     channel = grpc::CreateChannel(configuration.getHost(),
-                                  grpc::InsecureChannelCredentials()
-            /*grpc::CompositeChannelCredentials(
+              grpc::CompositeChannelCredentials(
                     grpc::SslCredentials(grpc::SslCredentialsOptions()),
                     grpc::AccessTokenCredentials(jwt)
-            )*/
+            )
     );
     //context.set_credentials(grpc::AccessTokenCredentials(jwt));
     context.AddMetadata("authorization",  "Bearer" + jwt); // TODO: delete
