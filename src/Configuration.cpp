@@ -18,12 +18,12 @@ void Configuration::parse(int argc, char **argv) {
     cxxopts::Options options(argv[0], "Verbio Technlogies S.L. - Speech Center client example");
     options.set_width(180).allow_unrecognised_options().add_options()
             ("a", "Path to a .wav audio in 8kHz and PCM16 encoding to use for the recognition", cxxopts::value(audioPath), "file")
-            ("b", "Path to the ABNF grammar file to use for the recognition", cxxopts::value(grammarPath), "file")
-            ("t", "Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO | INSURANCE", cxxopts::value(topic)->default_value(topic))
+            ("g", "Path to the Grammar ABNF file to use for the recognition", cxxopts::value(grammarPath), "file")
+            ("T", "Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO | INSURANCE", cxxopts::value(topic)->default_value(topic))
             ("l", "Language to use for the recognition: es-ES, en-US or pt-BR.", cxxopts::value(language)->default_value(language))
-            ("r", "Sample rate for the audio recognition: 16000.", cxxopts::value(sampleRate)->default_value(sampleRate))
-            ("T", "Path to the authentication token file", cxxopts::value(tokenPath))
-            ("e", "End point to send requests (The URL of the host or server trying to reach)", cxxopts::value(host)->default_value(host))
+            ("s", "Sample rate for the audio recognition: 16000.", cxxopts::value(sampleRate)->default_value(sampleRate))
+            ("t", "Path to the authentication token file", cxxopts::value(tokenPath))
+            ("H", "URL of the Host or server trying to reach", cxxopts::value(host)->default_value(host))
             ("h,help", "this help message");
     auto parsedOptions = options.parse(argc, argv);
 
