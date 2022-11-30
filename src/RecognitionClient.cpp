@@ -59,13 +59,24 @@ std::shared_ptr<grpc::Channel>
 RecognitionClient::createChannel(const Configuration &configuration) {
     auto jwt = readFileContent(configuration.getTokenPath());
     std::cout << "TOKEN: -" << jwt << "-" << std::endl;
-    channel = grpc::CreateChannel(configuration.getHost(),
-              grpc::CompositeChannelCredentials(
-                    grpc::SslCredentials(grpc::SslCredentialsOptions()),
-                    grpc::AccessTokenCredentials(jwt)
-            )
-    );
-    context.set_credentials(grpc::AccessTokenCredentials(jwt));
+
+    // GRPC Non/secure toggle
+    if(configuration.getNotSecure()) { // Not secure:
+        channel = grpc::CreateChannel(configuration.getHost(),
+                                      grpc::InsecureChannelCredentials()
+        );
+        context.AddMetadata("authorization", "Bearer" + jwt);
+    }
+    else { // Secure
+        channel = grpc::CreateChannel(configuration.getHost(),
+                                      grpc::CompositeChannelCredentials(
+                                              grpc::SslCredentials(grpc::SslCredentialsOptions()),
+                                              grpc::AccessTokenCredentials(jwt)
+                                      )
+        );
+        context.set_credentials(grpc::AccessTokenCredentials(jwt));
+    }
+
     channel->WaitForConnected(std::chrono::system_clock::now() + std::chrono::seconds(5));
     if (channel->GetState(false) != GRPC_CHANNEL_READY)
         if (!channel->WaitForStateChange(GRPC_CHANNEL_READY,
@@ -173,13 +184,11 @@ RecognitionClient::buildRecognitionParameters(const Configuration &configuration
 }
 
 std::unique_ptr<speechcenter::recognizer::v1::PCM>
-RecognitionClient::buildPCM(const std::string &sampleRate) {
+RecognitionClient::buildPCM(const uint32_t &sampleRate) {
     std::unique_ptr<speechcenter::recognizer::v1::PCM> pcm (new speechcenter::recognizer::v1::PCM());
     uint32_t sampleRateHz;
-    if(sampleRate == "16000" || sampleRate.empty())
-        sampleRateHz = 16000;
-    else
-        throw UnsupportedSampleRate(sampleRate);
+    if(sampleRate != 16000 && sampleRate != 8000)
+        throw UnsupportedSampleRate(std::to_string(sampleRate));
     pcm->set_sample_rate_hz(sampleRateHz);
     return pcm;
 }
@@ -194,13 +203,13 @@ RecognitionClient::buildRecognitionResource(const Configuration &configuration) 
 
 speechcenter::recognizer::v1::RecognitionResource_Model RecognitionClient::convertTopicModel(const std::string &modelName) {
     speechcenter::recognizer::v1::RecognitionResource_Model model;
-    if (modelName == "generic")
+    if (modelName == "generic" || modelName == "GENERIC")
         model = speechcenter::recognizer::v1::RecognitionResource_Model_GENERIC;
-    else if (modelName == "banking")
+    else if (modelName == "banking" || modelName == "BANKING")
         model = speechcenter::recognizer::v1::RecognitionResource_Model_BANKING;
-    else if (modelName == "telco")
+    else if (modelName == "telco" || modelName == "TELCO")
         model = speechcenter::recognizer::v1::RecognitionResource_Model_TELCO;
-    else if (modelName == "insurance")
+    else if (modelName == "insurance" || modelName == "INSURANCE")
         model = speechcenter::recognizer::v1::RecognitionResource_Model_INSURANCE;
     else
         throw UnknownTopicModel(modelName);
