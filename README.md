@@ -52,31 +52,21 @@ ctest
 ```
 ### Run the client
 The cli_client will be using the generated C++ code to connect to the Speech Center cloud to process you speech file.
-```commandline
-./>$ ./cli_client --help
-Verbio Technlogies S.L. - Speech Center client example
-Usage:
-./cli_client [OPTION...]
 
--a file     Path to a .wav audio in 8kHz and PCM16 encoding to use for the recognition
--b file     Path to the ABNF grammar file to use for the recognition (optional)
--t arg      Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO | INSURANCE (default: generic)
--l arg      Language to use for the recognition: es-ES, en-US or pt-BR. (default: en-US)
--T arg      Path to the authentication token file
--r arg      The sample rate in hz of the audio file (default: 16000, and currently the only one supported)
--e arg      End point to send requests (The URL of the host or server trying to reach) (default: csr.api.speechcenter.verbio.com)
--h, --help  this help message
+**Example**
+
+```commandline
+./>$ ./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H eu.speechcenter.verbio.com
 ```
+
+Which will give an output along these lines:
 
  #### Example:
  ```
- ./cli_client -a audio.wav -t generic -l en-US -T your-speech-center.token 
- [2022-02-24 18:16:16.908] [info] [SpeechCenterClient.cpp:88] FINAL RESPONSE: -Recognition results comes here- 
+[2022-12-15 11:43:39.022] [info] [RecognitionClient.cpp:88] Channel is ready. State 2
+[2022-12-15 11:43:39.022] [info] [RecognitionClient.cpp:89] Channel configuration: {}
+[2022-12-15 11:43:39.022] [info] [RecognitionClient.cpp:98] Stream CREATED. State 2
+[2022-12-15 11:43:39.024] [info] [RecognitionClient.cpp:103] WRITE: STARTING...
+[2022-12-15 11:43:39.024] [info] [RecognitionClient.cpp:105] Sending config:
+(...)
  ```
-
-
-
-
-
-
-

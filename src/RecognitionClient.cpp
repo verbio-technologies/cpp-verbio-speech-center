@@ -58,10 +58,10 @@ RecognitionClient::~RecognitionClient() = default;
 std::shared_ptr<grpc::Channel>
 RecognitionClient::createChannel(const Configuration &configuration) {
     auto jwt = readFileContent(configuration.getTokenPath());
-    std::cout << "TOKEN: -" << jwt << "-" << std::endl;
 
     // GRPC Non/secure toggle
     if(configuration.getNotSecure()) { // Not secure:
+        WARN("Establishing insecure connection.");
         channel = grpc::CreateChannel(configuration.getHost(),
                                       grpc::InsecureChannelCredentials()
         );
