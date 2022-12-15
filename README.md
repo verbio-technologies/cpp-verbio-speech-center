@@ -70,3 +70,5 @@ Which will give an output along these lines:
 [2022-12-15 11:43:39.024] [info] [RecognitionClient.cpp:105] Sending config:
 (...)
  ```
+
+Use the `--help` command for more options.
