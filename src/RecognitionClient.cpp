@@ -32,10 +32,13 @@ private:
 
 Audio::Audio(const std::string &audioPath) {
     SndfileHandle sndfileHandle(audioPath);
+    
+    /*
     if (sndfileHandle.channels() != 1)
         throw GrpcException("Audio file must be mono");
     if (sndfileHandle.samplerate() != 8000)
         throw GrpcException("Audio file must be 8 kHz.");
+    */
 
     length = sndfileHandle.frames();
     data = new int16_t[length];
@@ -74,7 +77,6 @@ RecognitionClient::createChannel(const Configuration &configuration) {
                                               grpc::AccessTokenCredentials(jwt)
                                       )
         );
-        context.set_credentials(grpc::AccessTokenCredentials(jwt));
     }
 
     channel->WaitForConnected(std::chrono::system_clock::now() + std::chrono::seconds(5));
@@ -186,10 +188,9 @@ RecognitionClient::buildRecognitionParameters(const Configuration &configuration
 std::unique_ptr<speechcenter::recognizer::v1::PCM>
 RecognitionClient::buildPCM(const uint32_t &sampleRate) {
     std::unique_ptr<speechcenter::recognizer::v1::PCM> pcm (new speechcenter::recognizer::v1::PCM());
-    uint32_t sampleRateHz;
     if(sampleRate != 16000 && sampleRate != 8000)
         throw UnsupportedSampleRate(std::to_string(sampleRate));
-    pcm->set_sample_rate_hz(sampleRateHz);
+    pcm->set_sample_rate_hz(sampleRate);
     return pcm;
 }
 
