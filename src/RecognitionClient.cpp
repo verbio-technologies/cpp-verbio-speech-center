@@ -32,14 +32,6 @@ private:
 
 Audio::Audio(const std::string &audioPath) {
     SndfileHandle sndfileHandle(audioPath);
-    
-    /*
-    if (sndfileHandle.channels() != 1)
-        throw GrpcException("Audio file must be mono");
-    if (sndfileHandle.samplerate() != 8000)
-        throw GrpcException("Audio file must be 8 kHz.");
-    */
-
     length = sndfileHandle.frames();
     data = new int16_t[length];
     length = sndfileHandle.read(data, length);
