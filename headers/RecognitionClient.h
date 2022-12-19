@@ -38,7 +38,7 @@ private:
         buildRecognitionParameters(const Configuration &configuration);
 
     static std::unique_ptr<speechcenter::recognizer::v1::PCM>
-        buildPCM(const std::string &sampleRate);
+        buildPCM(const uint32_t &sampleRate);
 
     static std::string readFileContent(const std::string &path);
     static std::string sanitize(std::string str);
