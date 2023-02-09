@@ -123,10 +123,12 @@ void RecognitionClient::connect(const Configuration& configuration) {
     speechcenter::recognizer::v1::RecognitionStreamingResponse response;
 
     while(stream->Read(&response)) {
-        if (!response.result().alternatives().empty()) {
+        if (response.result().is_final() && !response.result().alternatives().empty()) {
             speechcenter::recognizer::v1::RecognitionAlternative firstAlternative = response.result().alternatives().Get(0);
-            for(speechcenter::recognizer::v1::WordInfo word : firstAlternative.words() ) {
-                INFO("{}", word.word());
+            if(firstAlternative.words_size() > 0){
+                INFO("Segment start: {}", firstAlternative.words()[0].start_time().seconds());
+                std::cout << firstAlternative.transcript() << std::endl;
+                INFO("Segment end: {}", firstAlternative.words()[firstAlternative.words_size()-1].end_time().seconds());
             }
         }
         else {
