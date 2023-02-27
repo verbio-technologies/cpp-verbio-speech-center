@@ -24,6 +24,7 @@ public:
     std::string getGrammarPath() const;
     uint32_t getSampleRate() const;
     bool getNotSecure() const;
+    std::string getAsrVersion() const;
 
 private:
 
@@ -34,6 +35,7 @@ private:
     std::string audioPath;
     std::string host;
     std::string tokenPath;
+    std::string asrVersion;
     uint32_t sampleRate;
     bool notSecure;
 };

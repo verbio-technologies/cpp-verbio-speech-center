@@ -35,6 +35,11 @@ public:
     explicit UnsupportedSampleRate(const std::string &sampleRate);
 };
 
+class UnknownAsrVersion : public GrpcException {
+public:
+    explicit UnknownAsrVersion(const std::string &asrVersion);
+};
+
 class IOError : public GrpcException {
 public:
     explicit IOError(const std::string &message);

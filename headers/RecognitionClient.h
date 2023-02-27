@@ -40,6 +40,9 @@ private:
     static std::unique_ptr<speechcenter::recognizer::v1::PCM>
         buildPCM(const uint32_t &sampleRate);
 
+    static ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion
+        buildAsrVersion(const Configuration &configuration);
+
     static std::string readFileContent(const std::string &path);
     static std::string sanitize(std::string str);
 

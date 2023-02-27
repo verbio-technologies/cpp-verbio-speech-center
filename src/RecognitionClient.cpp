@@ -149,6 +149,7 @@ RecognitionClient::buildRecognitionConfig(const Configuration& configuration) {
     configMessage = std::make_unique<speechcenter::recognizer::v1::RecognitionConfig>();
     configMessage->set_allocated_resource(buildRecognitionResource(configuration).release());
     configMessage->set_allocated_parameters(buildRecognitionParameters(configuration).release());
+    configMessage->set_version(buildAsrVersion(configuration));
 
     speechcenter::recognizer::v1::RecognitionStreamingRequest recognitionConfig;
     recognitionConfig.set_allocated_config(new speechcenter::recognizer::v1::RecognitionConfig(*configMessage));
@@ -196,8 +197,10 @@ RecognitionClient::buildRecognitionResource(const Configuration &configuration) 
     return resource;
 }
 
-speechcenter::recognizer::v1::RecognitionResource_Model RecognitionClient::convertTopicModel(const std::string &modelName) {
+speechcenter::recognizer::v1::RecognitionResource_Model
+RecognitionClient::convertTopicModel(const std::string &modelName) {
     speechcenter::recognizer::v1::RecognitionResource_Model model;
+
     if (modelName == "generic" || modelName == "GENERIC")
         model = speechcenter::recognizer::v1::RecognitionResource_Model_GENERIC;
     else if (modelName == "banking" || modelName == "BANKING")
@@ -211,6 +214,19 @@ speechcenter::recognizer::v1::RecognitionResource_Model RecognitionClient::conve
     return model;
 }
 
+::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion
+RecognitionClient::buildAsrVersion(const Configuration &configuration) {
+    std::string asrVersion = configuration.getAsrVersion();
+
+    if (asrVersion == "v1" || asrVersion == "V1") {
+        return ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V1;
+    }
+    if (asrVersion == "v2" || asrVersion == "V2") {
+        return ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V2;
+    }
+
+    throw UnknownAsrVersion(asrVersion);
+}
 
 std::string RecognitionClient::readFileContent(const std::string &path) {
     std::ifstream ifs(path);
@@ -234,3 +250,4 @@ std::string RecognitionClient::sanitize(std::string str) {
     }
     return str;
 }
+
