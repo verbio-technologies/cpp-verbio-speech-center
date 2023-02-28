@@ -11,12 +11,12 @@
 #include <thread>
 #include <sstream>
 
-const std::string uppercaseString(std::string str) {
+const std::string uppercaseString(const std::string &str) {
     std::locale loc;
+    std::string upper = "";
     for (std::string::size_type i=0; i<str.length(); ++i)
-        std::cout << std::toupper(str[i],loc);
-
-    return str;
+        upper += std::toupper(str[i],loc);
+    return upper;
 }
 
 RecognitionClient::RecognitionClient(const Configuration &configuration) {
