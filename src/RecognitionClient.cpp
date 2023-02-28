@@ -196,7 +196,7 @@ RecognitionClient::convertTopic(const std::string &topicName) {
 
 ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion
 RecognitionClient::buildAsrVersion(const Configuration &configuration) {
-    const std::unordered_map<std::string, ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion>
+    static const std::unordered_map<std::string, ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion>
             validAsrVersions = {
             {"V1", ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V1},
             {"V2", ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V2}
