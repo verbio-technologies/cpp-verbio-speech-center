@@ -2,7 +2,7 @@
 
 #include "gRpcExceptions.h"
 #include "Configuration.h"
-#include "sndfile.hh"
+#include "Audio.h"
 
 #include "logger.h"
 
@@ -10,36 +10,13 @@
 
 #include <thread>
 #include <sstream>
-#include <fstream>
 
+const std::string uppercaseString(std::string str) {
+    std::locale loc;
+    for (std::string::size_type i=0; i<str.length(); ++i)
+        std::cout << std::toupper(str[i],loc);
 
-class Audio {
-public:
-    explicit Audio(const std::string &audioPath);
-    ~Audio();
-    const int16_t* getData() const {return data;}
-    int16_t* getData() {return data;}
-    int64_t getLengthInFrames() const {return length;}
-    int64_t getLengthInBytes() const {return length*getBytesPerSamples();}
-
-private:
-    int16_t *data{nullptr};
-    int64_t length{0};
-
-    int64_t getBytesPerSamples() const {return sizeof(*data);}
-};
-
-
-Audio::Audio(const std::string &audioPath) {
-    SndfileHandle sndfileHandle(audioPath);
-    length = sndfileHandle.frames();
-    data = new int16_t[length];
-    length = sndfileHandle.read(data, length);
-    INFO("Read {} samples with {} bytes per sample", sndfileHandle.frames(), getBytesPerSamples());
-}
-
-Audio::~Audio() {
-    delete data;
+    return str;
 }
 
 RecognitionClient::RecognitionClient(const Configuration &configuration) {
@@ -65,8 +42,8 @@ RecognitionClient::createChannel(const Configuration &configuration) {
     else { // Secure
         channel = grpc::CreateChannel(configuration.getHost(),
                                       grpc::CompositeChannelCredentials(
-                                              grpc::SslCredentials(grpc::SslCredentialsOptions()),
-                                              grpc::AccessTokenCredentials(jwt)
+                                      grpc::SslCredentials(grpc::SslCredentialsOptions()),
+                                      grpc::AccessTokenCredentials(jwt)
                                       )
         );
     }
@@ -193,39 +170,46 @@ std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource>
 RecognitionClient::buildRecognitionResource(const Configuration &configuration) {
     std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource> resource (new speechcenter::recognizer::v1::RecognitionResource());
 
-    resource->set_topic(convertTopicModel(configuration.getTopic()));
+    resource->set_topic(convertTopic(configuration.getTopic()));
     return resource;
 }
 
 speechcenter::recognizer::v1::RecognitionResource_Model
-RecognitionClient::convertTopicModel(const std::string &modelName) {
-    speechcenter::recognizer::v1::RecognitionResource_Model model;
+RecognitionClient::convertTopic(const std::string &topicName) {
+    static const std::unordered_map<std::string, speechcenter::recognizer::v1::RecognitionResource_Model>
+            validTopics = {
+            {"GENERIC", speechcenter::recognizer::v1::RecognitionResource_Model_GENERIC},
+            {"BANKING", speechcenter::recognizer::v1::RecognitionResource_Model_BANKING},
+            {"TELCO", speechcenter::recognizer::v1::RecognitionResource_Model_TELCO},
+            {"INSURANCE", speechcenter::recognizer::v1::RecognitionResource_Model_INSURANCE}
+    };
 
-    if (modelName == "generic" || modelName == "GENERIC")
-        model = speechcenter::recognizer::v1::RecognitionResource_Model_GENERIC;
-    else if (modelName == "banking" || modelName == "BANKING")
-        model = speechcenter::recognizer::v1::RecognitionResource_Model_BANKING;
-    else if (modelName == "telco" || modelName == "TELCO")
-        model = speechcenter::recognizer::v1::RecognitionResource_Model_TELCO;
-    else if (modelName == "insurance" || modelName == "INSURANCE")
-        model = speechcenter::recognizer::v1::RecognitionResource_Model_INSURANCE;
-    else
-        throw UnknownTopicModel(modelName);
-    return model;
+    std::string topicUpper = uppercaseString(topicName);
+
+    auto topicIter = validTopics.find(topicUpper);
+    if(topicIter == validTopics.end()) {
+        throw UnknownTopicModel(topicUpper);
+    }
+
+    return topicIter->second;
 }
 
 ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion
 RecognitionClient::buildAsrVersion(const Configuration &configuration) {
-    std::string asrVersion = configuration.getAsrVersion();
+    const std::unordered_map<std::string, ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion>
+            validAsrVersions = {
+            {"V1", ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V1},
+            {"V2", ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V2}
+    };
 
-    if (asrVersion == "v1" || asrVersion == "V1") {
-        return ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V1;
-    }
-    if (asrVersion == "v2" || asrVersion == "V2") {
-        return ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::RecognitionConfig_AsrVersion_V2;
+    std::string asrVersion = uppercaseString(configuration.getAsrVersion());
+
+    auto topicIter = validAsrVersions.find(asrVersion);
+    if(topicIter == validAsrVersions.end()) {
+        throw UnknownAsrVersion(asrVersion);
     }
 
-    throw UnknownAsrVersion(asrVersion);
+    return topicIter->second;
 }
 
 std::string RecognitionClient::readFileContent(const std::string &path) {
