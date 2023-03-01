@@ -25,6 +25,7 @@ void Configuration::parse(int argc, char **argv) {
             ("t,token", "Path to the authentication token file", cxxopts::value(tokenPath))
             ("H,host", "URL of the Host or server trying to reach", cxxopts::value(host)->default_value("eu.speechcenter.verbio.com"))
             ("S,not-secure", "Toggle for non-secure GRPC connections", cxxopts::value<bool>(notSecure)->default_value("false"))
+            ("A,asr-version", "Selectable asr version. Must be V1 | V2", cxxopts::value(asrVersion))
             ("h,help", "this help message");
     auto parsedOptions = options.parse(argc, argv);
 
@@ -66,4 +67,8 @@ uint32_t Configuration::getSampleRate() const {
 
 bool Configuration::getNotSecure() const {
     return notSecure;
+}
+
+std::string Configuration::getAsrVersion() const {
+    return asrVersion;
 }

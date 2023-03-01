@@ -23,7 +23,7 @@ private:
     std::shared_ptr<grpc::Channel> channel;
     grpc::ClientContext context;
 
-    static speechcenter::recognizer::v1::RecognitionResource_Model convertTopicModel(const std::string &modelName);
+    static speechcenter::recognizer::v1::RecognitionResource_Model convertTopic(const std::string &topicName);
 
     static speechcenter::recognizer::v1::RecognitionStreamingRequest
         buildRecognitionConfig(const Configuration& configuration);
@@ -39,6 +39,9 @@ private:
 
     static std::unique_ptr<speechcenter::recognizer::v1::PCM>
         buildPCM(const uint32_t &sampleRate);
+
+    static ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion
+        buildAsrVersion(const Configuration &configuration);
 
     static std::string readFileContent(const std::string &path);
     static std::string sanitize(std::string str);

@@ -56,7 +56,7 @@ The cli_client will be using the generated C++ code to connect to the Speech Cen
 **Example**
 
 ```commandline
-./>$ ./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H eu.speechcenter.verbio.com
+./>$ ./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H us.speechcenter.verbio.com -V V1
 ```
 
 Which will give an output along these lines:
