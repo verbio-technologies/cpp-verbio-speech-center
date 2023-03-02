@@ -9,7 +9,7 @@ In order to compile the source code you will need g++>=7, cmake-3.>= 20 and cona
 Before you start you will need: 
 1. Speech center proto file (provided in this repository)
 2. Platform access token (provided to you by Verbio Technologies) if you do not have one, register on our [website](https://www.speechcenter.verbio.com)
-3. Speech center CSR endpoint (csr.api.speechcenter.verbio.com)
+3. Speech center CSR endpoint (v2.us.speechcenter.verbio.com)
 
 ## Step by step
 
@@ -56,7 +56,7 @@ The cli_client will be using the generated C++ code to connect to the Speech Cen
 **Example**
 
 ```commandline
-./>$ ./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H us.speechcenter.verbio.com -V V1
+./>$ ./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H v2.us.speechcenter.verbio.com -V V1
 ```
 
 Which will give an output along these lines:
