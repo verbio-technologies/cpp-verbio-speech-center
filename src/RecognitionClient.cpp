@@ -20,6 +20,7 @@ std::string uppercaseString(const std::string &str) {
 }
 
 RecognitionClient::RecognitionClient(const Configuration &configuration) {
+    INFO("Started recognition session...");
     channel = createChannel(configuration);
 
     stub_ = speechcenter::recognizer::v1::Recognizer::NewStub(channel);
@@ -90,7 +91,7 @@ void RecognitionClient::connect(const Configuration& configuration) {
         }
 
         stream->WritesDone();
-        INFO("WRITE: ...FINISHED");
+        INFO("Audio sent");
     });
 
     // Read
@@ -103,9 +104,9 @@ void RecognitionClient::connect(const Configuration& configuration) {
         if (response.result().is_final() && !response.result().alternatives().empty()) {
             speechcenter::recognizer::v1::RecognitionAlternative firstAlternative = response.result().alternatives().Get(0);
             if(firstAlternative.words_size() > 0){
-                INFO("Segment start: {}", firstAlternative.words()[0].start_time().seconds());
+                INFO("Segment start: {}", firstAlternative.words()[0].start_time());
                 std::cout << firstAlternative.transcript() << std::endl;
-                INFO("Segment end: {}", firstAlternative.words()[firstAlternative.words_size()-1].end_time().seconds());
+                INFO("Segment end: {}", firstAlternative.words()[firstAlternative.words_size()-1].end_time());
             }
         }
         else {
@@ -154,6 +155,11 @@ RecognitionClient::buildRecognitionParameters(const Configuration &configuration
     std::unique_ptr<speechcenter::recognizer::v1::RecognitionParameters> parameters (new speechcenter::recognizer::v1::RecognitionParameters());
     parameters->set_language(configuration.getLanguage());
     parameters->set_allocated_pcm(buildPCM(configuration.getSampleRate()).release());
+    INFO("Enabled formatting: {}", configuration.getFormatting());
+    parameters->set_enable_formatting(configuration.getFormatting());
+    INFO("Enabled diarization: {}", configuration.getDiarization());
+    parameters->set_enable_diarization(configuration.getDiarization());
+    
     return parameters;
 }
 
@@ -174,14 +180,14 @@ RecognitionClient::buildRecognitionResource(const Configuration &configuration) 
     return resource;
 }
 
-speechcenter::recognizer::v1::RecognitionResource_Model
+speechcenter::recognizer::v1::RecognitionResource_Topic
 RecognitionClient::convertTopic(const std::string &topicName) {
-    static const std::unordered_map<std::string, speechcenter::recognizer::v1::RecognitionResource_Model>
+    static const std::unordered_map<std::string, speechcenter::recognizer::v1::RecognitionResource_Topic>
             validTopics = {
-            {"GENERIC", speechcenter::recognizer::v1::RecognitionResource_Model_GENERIC},
-            {"BANKING", speechcenter::recognizer::v1::RecognitionResource_Model_BANKING},
-            {"TELCO", speechcenter::recognizer::v1::RecognitionResource_Model_TELCO},
-            {"INSURANCE", speechcenter::recognizer::v1::RecognitionResource_Model_INSURANCE}
+            {"GENERIC", speechcenter::recognizer::v1::RecognitionResource_Topic_GENERIC},
+            {"BANKING", speechcenter::recognizer::v1::RecognitionResource_Topic_BANKING},
+            {"TELCO", speechcenter::recognizer::v1::RecognitionResource_Topic_TELCO},
+            {"INSURANCE", speechcenter::recognizer::v1::RecognitionResource_Topic_INSURANCE}
     };
 
     std::string topicUpper = uppercaseString(topicName);
