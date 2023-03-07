@@ -20,11 +20,13 @@ void Configuration::parse(int argc, char **argv) {
             ("a,audio", "Path to a .wav audio in 8kHz and PCM16 encoding to use for the recognition", cxxopts::value(audioPath), "file")
             //("g,grammar", "Path to the Grammar ABNF file to use for the recognition", cxxopts::value(grammarPath), "file")
             ("T,topic", "Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO | INSURANCE", cxxopts::value(topic)->default_value(topic))
-            ("l,language", "Language to use for the recognition: es, en-US or pt-BR.", cxxopts::value(language)->default_value(language))
+            ("l,language", "Language to use for the recognition: en-US, en-GB, pt-BR, es, es-419, tr, ja, fr, fr-CA, de, it", cxxopts::value(language)->default_value(language))
             ("s,sample-rate", "Sample rate for the audio recognition: 8000, 16000.", cxxopts::value<uint32_t>(sampleRate))
             ("t,token", "Path to the authentication token file", cxxopts::value(tokenPath))
             ("H,host", "URL of the Host or server trying to reach", cxxopts::value(host)->default_value("eu.speechcenter.verbio.com"))
             ("S,not-secure", "Toggle for non-secure GRPC connections", cxxopts::value<bool>(notSecure)->default_value("false"))
+            ("d,diarization", "Toggle for diarization", cxxopts::value<bool>(diarization)->default_value("false"))
+            ("f,formatting", "Toggle for formatting", cxxopts::value<bool>(formatting)->default_value("false"))
             ("A,asr-version", "Selectable asr version. Must be V1 | V2", cxxopts::value(asrVersion))
             ("h,help", "this help message");
     auto parsedOptions = options.parse(argc, argv);
@@ -71,4 +73,12 @@ bool Configuration::getNotSecure() const {
 
 std::string Configuration::getAsrVersion() const {
     return asrVersion;
+}
+
+bool Configuration::getDiarization() const {
+    return diarization;
+}
+
+bool Configuration::getFormatting() const {
+    return formatting;
 }

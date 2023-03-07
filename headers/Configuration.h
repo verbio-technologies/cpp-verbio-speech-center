@@ -25,10 +25,10 @@ public:
     uint32_t getSampleRate() const;
     bool getNotSecure() const;
     std::string getAsrVersion() const;
+    bool getDiarization() const;
+    bool getFormatting() const;
 
 private:
-
-
     std::string language;
     std::string topic;
     std::string grammarPath;
@@ -38,6 +38,8 @@ private:
     std::string asrVersion;
     uint32_t sampleRate;
     bool notSecure;
+    bool diarization;
+    bool formatting;
 };
 
 
