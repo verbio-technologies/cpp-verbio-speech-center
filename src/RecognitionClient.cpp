@@ -85,9 +85,10 @@ void RecognitionClient::connect(const Configuration& configuration) {
         INFO("Sending audio...");
         int requestCount = 0;
         for (const auto &request : buildAudioRequests(configuration)) {
-            auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
-            streamFail = !stream->Write(request);
-            if (streamFail) {
+            constexpr int bytesPerSamples = 2; // PCM16
+            auto deadline = std::chrono::system_clock::now() +
+                    std::chrono::milliseconds ( request.audio().length()*1000 / (bytesPerSamples * configuration.getSampleRate()) );
+            if (!stream->Write(request)) {
                 auto status = stream->Finish();
                 ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
                 return;
