@@ -3,10 +3,11 @@
 
 #include "Configuration.h"
 
-#include <grpcpp/security/credentials.h>
-#include <grpcpp/impl/codegen/client_context.h>
 #include "recognition.grpc.pb.h"
 #include "recognition.pb.h"
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/security/credentials.h>
+using namespace speechcenter::recognizer::v1;
 
 class Audio;
 
@@ -16,38 +17,39 @@ public:
 
     ~RecognitionClient();
 
-    void connect(const Configuration& configuration);
+    void connect(const Configuration &configuration);
 
 private:
-    std::unique_ptr<speechcenter::recognizer::v1::Recognizer::Stub> stub_;
+    std::unique_ptr<Recognizer::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel;
     grpc::ClientContext context;
+    Configuration configuration;
 
-    static speechcenter::recognizer::v1::RecognitionResource_Topic convertTopic(const std::string &topicName);
+    static RecognitionResource_Topic convertTopic(const std::string &topicName);
 
-    static speechcenter::recognizer::v1::RecognitionStreamingRequest
-        buildRecognitionConfig(const Configuration& configuration);
+    RecognitionStreamingRequest buildRecognitionConfig();
 
-    static speechcenter::recognizer::v1::RecognitionStreamingRequest
-        buildAudioRequest(const Configuration& configuration);
+    RecognitionStreamingRequest buildAudioRequest();
 
-    static std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource>
-        buildRecognitionResource(const Configuration &configuration);
+    std::unique_ptr<RecognitionResource> buildRecognitionResource();
 
-    static std::unique_ptr<speechcenter::recognizer::v1::RecognitionParameters>
-        buildRecognitionParameters(const Configuration &configuration);
+    std::unique_ptr<RecognitionParameters> buildRecognitionParameters();
 
-    static std::unique_ptr<speechcenter::recognizer::v1::PCM>
-        buildPCM(const uint32_t &sampleRate);
+    static std::unique_ptr<PCM> buildPCM(const uint32_t &sampleRate);
 
-    static ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion
-        buildAsrVersion(const Configuration &configuration);
+    RecognitionConfig_AsrVersion buildAsrVersion();
 
     static std::string readFileContent(const std::string &path);
     static std::string sanitize(std::string str);
 
-    std::shared_ptr<grpc::Channel>
-    createChannel(const Configuration &configuration);
+    std::shared_ptr<grpc::Channel> createChannel();
+
+    void test(int i);
+
+    void
+    write(std::shared_ptr<grpc::ClientReaderWriter<RecognitionStreamingRequest,
+                                                   RecognitionStreamingResponse>>
+                  stream);
 };
 
 #endif

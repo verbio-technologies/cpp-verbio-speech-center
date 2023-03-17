@@ -8,7 +8,6 @@ UnsupportedSampleRate::UnsupportedSampleRate(const std::string &sampleRate) : Gr
 UnknownAsrVersion::UnknownAsrVersion(const std::string &asrVersion) : GrpcException("Invalid version: " + asrVersion) {}
 LanguageModelNotImplemented::LanguageModelNotImplemented(const std::string &mode) : GrpcException("Recognition of " + mode + " models is not implemented for gRPC backend.") {}
 MultipleLanguageModelsNotImplemented::MultipleLanguageModelsNotImplemented() : GrpcException("Multiple language models in parallel not implemented.") {}
+StreamException::StreamException(const std::string message) : GrpcException("Stream error: " + message) {}
 
 IOError::IOError(const std::string &message) : GrpcException(message) {}
-
-

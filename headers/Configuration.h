@@ -2,19 +2,18 @@
 #define VERBIO_ASRTESTCONFIGURATION_H
 
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-
 
 
 class Configuration {
 public:
     Configuration();
-    Configuration(int argc, char* argv[]);
+    Configuration(int argc, char *argv[]);
     ~Configuration();
 
-    void parse(int argc, char* argv[]);
+    void parse(int argc, char *argv[]);
 
     std::string getAudioPath() const;
     std::string getTopic() const;
@@ -41,8 +40,6 @@ private:
     bool diarization;
     bool formatting;
 };
-
-
 
 
 #endif
