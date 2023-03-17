@@ -10,6 +10,7 @@
 
 #include <thread>
 #include <sstream>
+#include <chrono>
 
 std::string uppercaseString(const std::string &str) {
     std::locale loc;
@@ -81,17 +82,23 @@ void RecognitionClient::connect(const Configuration& configuration) {
             return;
         }
 
-        speechcenter::recognizer::v1::RecognitionStreamingRequest audioRequest = buildAudioRequest(configuration);
         INFO("Sending audio...");
-        streamFail = !stream->Write(audioRequest);
-        if(streamFail) {
-            auto status = stream->Finish();
-            ERROR("{} ({}: {})",  status.error_message(), status.error_code(), status.error_details());
-            return;
+        int requestCount = 0;
+        for (const auto &request : buildAudioRequests(configuration)) {
+            auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds(250);
+            streamFail = !stream->Write(request);
+            if (streamFail) {
+                auto status = stream->Finish();
+                ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
+                return;
+            }
+            if (requestCount % 10 == 0)
+                INFO ("Sent {} bytes of audio", requestCount * request.audio().length());
+            ++requestCount;
+            std::this_thread::sleep_until(deadline);
         }
-
         stream->WritesDone();
-        INFO("Audio sent");
+        INFO("All audio sent in {} requests.", requestCount);
     });
 
     // Read
@@ -135,19 +142,23 @@ RecognitionClient::buildRecognitionConfig(const Configuration& configuration) {
     return recognitionConfig;
 }
 
-speechcenter::recognizer::v1::RecognitionStreamingRequest
-RecognitionClient::buildAudioRequest(const Configuration& configuration) {
+std::vector<speechcenter::recognizer::v1::RecognitionStreamingRequest>
+RecognitionClient::buildAudioRequests(const Configuration& configuration) {
     INFO("Building audio request...");
-
-    Audio audio(configuration.getAudioPath());
-
+    AudioFile audioFile(configuration.getAudioPath()) ;
+    auto const &audio = audioFile.getAudio();
     int64_t lengthInBytes = audio.getLengthInBytes();
-
     INFO("Audio bytes: " + std::to_string(lengthInBytes));
-    speechcenter::recognizer::v1::RecognitionStreamingRequest audioRequest;
-    audioRequest.set_audio(static_cast<void*>(audio.getData()), lengthInBytes);
 
-    return audioRequest;
+    std::vector<speechcenter::recognizer::v1::RecognitionStreamingRequest> requests;
+    constexpr unsigned int chunkLengthInSamples = 2000;
+    auto chunks = audio.getAudioChunks<chunkLengthInSamples>();
+    for (const auto chunk : chunks) {
+        speechcenter::recognizer::v1::RecognitionStreamingRequest request;
+        request.set_audio(static_cast<const void*> (chunk.data()), chunkLengthInSamples * 2);
+        requests.emplace_back(request);
+    }
+    return requests;
 }
 
 std::unique_ptr<speechcenter::recognizer::v1::RecognitionParameters>
