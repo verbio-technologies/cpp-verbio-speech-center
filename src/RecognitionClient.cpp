@@ -122,9 +122,8 @@ void RecognitionClient::connect(const Configuration& configuration) {
     }
     writer.join();
     grpc::Status status = stream->Finish();
-    if(!status.ok()) {
-        ERROR("RESPONSE ERROR!\n\n");
-    }
+    if(!status.ok())
+        ERROR("RESPONSE ERROR {}: {} ({})", status.error_code(), status.error_message(), status.error_details());
 }
 
 speechcenter::recognizer::v1::RecognitionStreamingRequest
