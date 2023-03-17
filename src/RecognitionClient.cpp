@@ -150,11 +150,10 @@ RecognitionClient::buildAudioRequests(const Configuration& configuration) {
     INFO("Audio bytes: " + std::to_string(lengthInBytes));
 
     std::vector<speechcenter::recognizer::v1::RecognitionStreamingRequest> requests;
-    constexpr unsigned int chunkLengthInSamples = 2000;
-    auto chunks = audio.getAudioChunks<chunkLengthInSamples>();
+    auto chunks = audio.getAudioChunks<2000>();
     for (const auto chunk : chunks) {
         speechcenter::recognizer::v1::RecognitionStreamingRequest request;
-        request.set_audio(static_cast<const void*> (chunk.data()), chunkLengthInSamples * 2);
+        request.set_audio(static_cast<const void*> (chunk.data()), chunk.size() * audio.getBytesPerSamples());
         requests.emplace_back(request);
     }
     return requests;
