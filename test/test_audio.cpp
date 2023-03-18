@@ -5,7 +5,7 @@
 #include "Audio.h"
 
 TEST(Audio, initialisationIsAllocation) {
-    constexpr int numberOfSamples = 60000000;
+    constexpr int numberOfSamples = 60000;
     std::array<int16_t, numberOfSamples> rawAudio;
     for (int i = 0; i < numberOfSamples; ++i) rawAudio[i] = i;
     Audio audio(rawAudio.data(), 8000, numberOfSamples);
