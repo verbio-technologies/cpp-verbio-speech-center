@@ -93,9 +93,10 @@ void RecognitionClient::connect(const Configuration& configuration) {
                 ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
                 return;
             }
+            ++requestCount;
             if (requestCount % 10 == 0)
                 INFO ("Sent {} bytes of audio", requestCount * request.audio().length());
-            ++requestCount;
+
             std::this_thread::sleep_until(deadline);
         }
         stream->WritesDone();
