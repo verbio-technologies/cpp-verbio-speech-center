@@ -28,8 +28,8 @@ private:
     static speechcenter::recognizer::v1::RecognitionStreamingRequest
         buildRecognitionConfig(const Configuration& configuration);
 
-    static speechcenter::recognizer::v1::RecognitionStreamingRequest
-        buildAudioRequest(const Configuration& configuration);
+    static std::vector<speechcenter::recognizer::v1::RecognitionStreamingRequest>
+        buildAudioRequests(const Configuration& configuration);
 
     static std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource>
         buildRecognitionResource(const Configuration &configuration);
