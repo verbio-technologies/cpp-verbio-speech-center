@@ -2,30 +2,41 @@
 #define VERBIO_ASRTESTCONFIGURATION_H
 
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-
 
 
 class Configuration {
 public:
     Configuration();
-    Configuration(int argc, char* argv[]);
+
+    Configuration(int argc, char *argv[]);
+
     ~Configuration();
 
-    void parse(int argc, char* argv[]);
+    void parse(int argc, char *argv[]);
 
     std::string getAudioPath() const;
+
     std::string getTopic() const;
+
     std::string getHost() const;
+
     std::string getLanguage() const;
+
     std::string getTokenPath() const;
+
     std::string getGrammarPath() const;
+
     uint32_t getSampleRate() const;
+
     bool getNotSecure() const;
+
     std::string getAsrVersion() const;
+
     bool getDiarization() const;
+
     bool getFormatting() const;
 
 private:
@@ -41,8 +52,6 @@ private:
     bool diarization;
     bool formatting;
 };
-
-
 
 
 #endif

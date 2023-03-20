@@ -1,8 +1,8 @@
 #ifndef ASRTEST_GRPCEXCEPTIONS_H
 #define ASRTEST_GRPCEXCEPTIONS_H
 
-#include <string>
 #include <stdexcept>
+#include <string>
 
 
 class GrpcException : public std::runtime_error {
@@ -43,6 +43,11 @@ public:
 class IOError : public GrpcException {
 public:
     explicit IOError(const std::string &message);
+};
+
+class StreamException : public GrpcException {
+public:
+    explicit StreamException(const std::string message);
 };
 
 #endif
