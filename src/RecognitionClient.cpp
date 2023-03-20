@@ -8,40 +8,50 @@
 
 #include <grpcpp/create_channel.h>
 
+#include <chrono>
 #include <future>
 #include <sstream>
 #include <thread>
 
+using namespace speechcenter::recognizer::v1;
+typedef RecognitionStreamingRequest Request;
+typedef RecognitionStreamingResponse Response;
+
 void RecognitionClient::write(
-        std::shared_ptr<grpc::ClientReaderWriter<RecognitionStreamingRequest,
-                                                 RecognitionStreamingResponse>>
-                stream) {
+        std::shared_ptr<grpc::ClientReaderWriter<Request,
+                Response>>
+        stream) {
 
     INFO("WRITE: STARTING...");
-    speechcenter::recognizer::v1::RecognitionStreamingRequest recognitionConfig =
-            buildRecognitionConfig();
+    Request recognitionConfig = buildRecognitionConfig();
     INFO("Sending config: \n{} ", recognitionConfig.DebugString());
     bool streamFail = !stream->Write(recognitionConfig);
     if (streamFail) {
         auto status = stream->Finish();
-        ERROR("{} ({}: {})", status.error_message(), status.error_code(),
-              status.error_details());
+        ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
         throw StreamException(status.error_message());
     }
 
-    speechcenter::recognizer::v1::RecognitionStreamingRequest audioRequest =
-            buildAudioRequest();
     INFO("Sending audio...");
-    streamFail = !stream->Write(audioRequest);
-    if (streamFail) {
-        auto status = stream->Finish();
-        ERROR("{} ({}: {})", status.error_message(), status.error_code(),
-              status.error_details());
-        throw StreamException(status.error_message());
-    }
+    int requestCount = 0;
+    for (const auto &request: buildAudioRequests()) {
+        constexpr int bytesPerSamples = 2;// PCM16
+        auto deadline = std::chrono::system_clock::now() +
+                        std::chrono::milliseconds(
+                                request.audio().length() * 1000 / (bytesPerSamples * configuration.getSampleRate()));
+        if (!stream->Write(request)) {
+            auto status = stream->Finish();
+            ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
+            throw StreamException(status.error_message());
+        }
+        ++requestCount;
+        if (requestCount % 10 == 0)
+            INFO("Sent {} bytes of audio", requestCount * request.audio().length());
 
+        std::this_thread::sleep_until(deadline);
+    }
     stream->WritesDone();
-    INFO("Audio sent");
+    INFO("All audio sent in {} requests.", requestCount);
 }
 
 std::string uppercaseString(const std::string &str) {
@@ -56,12 +66,10 @@ RecognitionClient::RecognitionClient(const Configuration &configuration) {
     INFO("Started recognition session...");
     this->configuration = configuration;
     channel = createChannel();
-    stub_ = speechcenter::recognizer::v1::Recognizer::NewStub(channel);
+    stub_ = Recognizer::NewStub(channel);
 };
 
 RecognitionClient::~RecognitionClient() = default;
-
-void RecognitionClient::test(int i) { sleep(10); };
 
 std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
     auto jwt = readFileContent(configuration.getTokenPath());
@@ -85,7 +93,7 @@ std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
     if (channel->GetState(false) != GRPC_CHANNEL_READY)
         if (!channel->WaitForStateChange(GRPC_CHANNEL_READY,
                                          std::chrono::system_clock::now() +
-                                                 std::chrono::seconds(5))) {
+                                         std::chrono::seconds(5))) {
             WARN("Channel could get ready.");
             return channel;
         }
@@ -95,46 +103,36 @@ std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
 }
 
 void RecognitionClient::connect(const Configuration &configuration) {
-    std::shared_ptr<grpc::ClientReaderWriter<
-            speechcenter::recognizer::v1::RecognitionStreamingRequest,
-            speechcenter::recognizer::v1::RecognitionStreamingResponse>>
-            stream(stub_->StreamingRecognize(&context));
+    std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> stream(stub_->StreamingRecognize(&context));
 
     INFO("Stream CREATED. State {}", toascii(channel->GetState(true)));
 
     // Write
     std::packaged_task<void(
-            std::shared_ptr<grpc::ClientReaderWriter<
-                    speechcenter::recognizer::v1::RecognitionStreamingRequest,
-                    speechcenter::recognizer::v1::RecognitionStreamingResponse>>)>
+            std::shared_ptr<grpc::ClientReaderWriter<Request, Response>>)>
             parallel_write(
-                    [this](
-                            std::shared_ptr<grpc::ClientReaderWriter<
-                                    speechcenter::recognizer::v1::RecognitionStreamingRequest,
-                                    speechcenter::recognizer::v1::RecognitionStreamingResponse>>
-                                    stream) {
-                        write(stream);
-                    });
+            [this](
+                    std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> stream) { write(stream); });
     auto result = parallel_write.get_future();
+
     auto thread = std::thread{std::move(parallel_write), stream};
 
     // Read
 
     INFO("READ: STARTING...");
 
-    speechcenter::recognizer::v1::RecognitionStreamingResponse response;
+    Response response;
 
     while (stream->Read(&response)) {
         if (response.result().is_final() &&
             !response.result().alternatives().empty()) {
-            speechcenter::recognizer::v1::RecognitionAlternative firstAlternative =
+            RecognitionAlternative firstAlternative =
                     response.result().alternatives().Get(0);
             if (firstAlternative.words_size() > 0) {
                 INFO("Segment start: {}", firstAlternative.words()[0].start_time());
                 std::cout << firstAlternative.transcript() << std::endl;
                 INFO("Segment end: {}",
-                     firstAlternative.words()[firstAlternative.words_size() - 1]
-                             .end_time());
+                     firstAlternative.words()[firstAlternative.words_size() - 1].end_time());
             }
         } else {
             WARN("No recognition result alternatives!");
@@ -149,44 +147,46 @@ void RecognitionClient::connect(const Configuration &configuration) {
     }
 }
 
-speechcenter::recognizer::v1::RecognitionStreamingRequest
+Request
 RecognitionClient::buildRecognitionConfig() {
-    std::unique_ptr<speechcenter::recognizer::v1::RecognitionConfig>
+    std::unique_ptr<RecognitionConfig>
             configMessage;
 
     configMessage =
-            std::make_unique<speechcenter::recognizer::v1::RecognitionConfig>();
+            std::make_unique<RecognitionConfig>();
     configMessage->set_allocated_resource(buildRecognitionResource().release());
     configMessage->set_allocated_parameters(
             buildRecognitionParameters().release());
     configMessage->set_version(buildAsrVersion());
 
-    speechcenter::recognizer::v1::RecognitionStreamingRequest recognitionConfig;
+    Request recognitionConfig;
     recognitionConfig.set_allocated_config(
-            new speechcenter::recognizer::v1::RecognitionConfig(*configMessage));
+            new RecognitionConfig(*configMessage));
 
     return recognitionConfig;
 }
 
-speechcenter::recognizer::v1::RecognitionStreamingRequest
-RecognitionClient::buildAudioRequest() {
+std::vector<Request> RecognitionClient::buildAudioRequests() {
     INFO("Building audio request...");
-
-    Audio audio(configuration.getAudioPath());
-
+    AudioFile audioFile(configuration.getAudioPath());
+    auto const &audio = audioFile.getAudio();
     int64_t lengthInBytes = audio.getLengthInBytes();
-
     INFO("Audio bytes: " + std::to_string(lengthInBytes));
-    speechcenter::recognizer::v1::RecognitionStreamingRequest audioRequest;
-    audioRequest.set_audio(static_cast<void *>(audio.getData()), lengthInBytes);
 
-    return audioRequest;
+    std::vector<Request> requests;
+    auto chunks = audio.getAudioChunks<20000>();
+    for (const auto &chunk: chunks) {
+        Request request;
+        request.set_audio(static_cast<const void *>(chunk.data()), chunk.size() * audio.getBytesPerSamples());
+        requests.emplace_back(request);
+    }
+    return requests;
 }
 
 std::unique_ptr<RecognitionParameters>
 RecognitionClient::buildRecognitionParameters() {
-    std::unique_ptr<speechcenter::recognizer::v1::RecognitionParameters>
-            parameters(new speechcenter::recognizer::v1::RecognitionParameters());
+    std::unique_ptr<RecognitionParameters>
+            parameters(new RecognitionParameters());
     parameters->set_language(configuration.getLanguage());
     parameters->set_allocated_pcm(
             buildPCM(configuration.getSampleRate()).release());
@@ -198,10 +198,10 @@ RecognitionClient::buildRecognitionParameters() {
     return parameters;
 }
 
-std::unique_ptr<speechcenter::recognizer::v1::PCM>
+std::unique_ptr<PCM>
 RecognitionClient::buildPCM(const uint32_t &sampleRate) {
-    std::unique_ptr<speechcenter::recognizer::v1::PCM> pcm(
-            new speechcenter::recognizer::v1::PCM());
+    std::unique_ptr<PCM> pcm(
+            new PCM());
     if (sampleRate != 16000 && sampleRate != 8000)
         throw UnsupportedSampleRate(std::to_string(sampleRate));
     pcm->set_sample_rate_hz(sampleRate);
@@ -210,26 +210,26 @@ RecognitionClient::buildPCM(const uint32_t &sampleRate) {
 
 std::unique_ptr<RecognitionResource>
 RecognitionClient::buildRecognitionResource() {
-    std::unique_ptr<speechcenter::recognizer::v1::RecognitionResource> resource(
-            new speechcenter::recognizer::v1::RecognitionResource());
+    std::unique_ptr<RecognitionResource> resource(
+            new RecognitionResource());
 
     resource->set_topic(convertTopic(configuration.getTopic()));
     return resource;
 }
 
-speechcenter::recognizer::v1::RecognitionResource_Topic
+RecognitionResource_Topic
 RecognitionClient::convertTopic(const std::string &topicName) {
     static const std::unordered_map<
-            std::string, speechcenter::recognizer::v1::RecognitionResource_Topic>
+            std::string, RecognitionResource_Topic>
             validTopics = {
-                    {"GENERIC",
-                     speechcenter::recognizer::v1::RecognitionResource_Topic_GENERIC},
-                    {"BANKING",
-                     speechcenter::recognizer::v1::RecognitionResource_Topic_BANKING},
-                    {"TELCO",
-                     speechcenter::recognizer::v1::RecognitionResource_Topic_TELCO},
-                    {"INSURANCE",
-                     speechcenter::recognizer::v1::RecognitionResource_Topic_INSURANCE}};
+            {"GENERIC",
+                    RecognitionResource_Topic_GENERIC},
+            {"BANKING",
+                    RecognitionResource_Topic_BANKING},
+            {"TELCO",
+                    RecognitionResource_Topic_TELCO},
+            {"INSURANCE",
+                    RecognitionResource_Topic_INSURANCE}};
 
     std::string topicUpper = uppercaseString(topicName);
 
@@ -243,12 +243,12 @@ RecognitionClient::convertTopic(const std::string &topicName) {
 
 RecognitionConfig_AsrVersion RecognitionClient::buildAsrVersion() {
     static const std::unordered_map<
-            std::string, ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion>
+            std::string, ::RecognitionConfig_AsrVersion>
             validAsrVersions = {
-                    {"V1", ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::
-                                   RecognitionConfig_AsrVersion_V1},
-                    {"V2", ::speechcenter::recognizer::v1::RecognitionConfig_AsrVersion::
-                                   RecognitionConfig_AsrVersion_V2}};
+            {"V1", ::RecognitionConfig_AsrVersion::
+                   RecognitionConfig_AsrVersion_V1},
+            {"V2", ::RecognitionConfig_AsrVersion::
+                   RecognitionConfig_AsrVersion_V2}};
 
     std::string asrVersion = uppercaseString(configuration.getAsrVersion());
 

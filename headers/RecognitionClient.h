@@ -7,6 +7,7 @@
 #include "recognition.pb.h"
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/security/credentials.h>
+
 using namespace speechcenter::recognizer::v1;
 
 class Audio;
@@ -29,7 +30,7 @@ private:
 
     RecognitionStreamingRequest buildRecognitionConfig();
 
-    RecognitionStreamingRequest buildAudioRequest();
+    std::vector<RecognitionStreamingRequest> buildAudioRequests();
 
     std::unique_ptr<RecognitionResource> buildRecognitionResource();
 
@@ -40,16 +41,13 @@ private:
     RecognitionConfig_AsrVersion buildAsrVersion();
 
     static std::string readFileContent(const std::string &path);
+
     static std::string sanitize(std::string str);
 
     std::shared_ptr<grpc::Channel> createChannel();
 
-    void test(int i);
-
     void
-    write(std::shared_ptr<grpc::ClientReaderWriter<RecognitionStreamingRequest,
-                                                   RecognitionStreamingResponse>>
-                  stream);
+    write(std::shared_ptr<grpc::ClientReaderWriter<RecognitionStreamingRequest, RecognitionStreamingResponse>> stream);
 };
 
 #endif

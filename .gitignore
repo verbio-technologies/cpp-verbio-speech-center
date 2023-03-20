@@ -2,6 +2,7 @@
 build
 debug
 cmake-build-debug
+cmake-build-release
 .cmake
 *.wav
 *.token
