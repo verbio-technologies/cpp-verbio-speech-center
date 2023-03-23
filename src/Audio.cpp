@@ -21,7 +21,7 @@ Audio::~Audio() = default;
 
 Audio::Audio(const std::string &audioPath) {
     SndfileHandle sndfileHandle(audioPath);
-    this->length = sndfileHandle.frames();
+    auto length = sndfileHandle.frames();
     auto data = new int16_t[length];
     length = sndfileHandle.read(data, length);
     auto samplingRate = sndfileHandle.samplerate();
