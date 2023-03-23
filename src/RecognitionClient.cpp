@@ -168,8 +168,8 @@ RecognitionClient::buildRecognitionConfig() {
 
 std::vector<Request> RecognitionClient::buildAudioRequests() {
     INFO("Building audio request...");
-    AudioFile audioFile(configuration.getAudioPath());
-    auto const &audio = audioFile.getAudio();
+    std::string path = configuration.getAudioPath();
+    auto const &audio = Audio(path);
     int64_t lengthInBytes = audio.getLengthInBytes();
     INFO("Audio bytes: " + std::to_string(lengthInBytes));
 

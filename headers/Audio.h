@@ -13,6 +13,8 @@ class Audio {
 public:
     Audio(const int16_t *data, int samplingRate, int lengthInFrames);
 
+    Audio(const std::string &audioPath);
+
     ~Audio();
 
     const int16_t *const getData() const { return data.get(); }
@@ -33,22 +35,6 @@ private:
     int64_t length{0};
     int64_t samplingRate{0};
 };
-
-
-class AudioFile {
-public:
-    explicit AudioFile(const std::string &audioPath);
-
-    ~AudioFile();
-
-    [[nodiscard]] const Audio &getAudio() const { return audio; }
-
-private:
-    Audio audio;
-
-    static Audio readAudioFromFile(const std::string &audioPath);
-};
-
 
 template<std::size_t chunkLength>
 std::vector<std::array<int16_t, chunkLength> > Audio::getAudioChunks() const {
