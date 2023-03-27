@@ -6,7 +6,7 @@
 
 
 Configuration::Configuration() : host("csr.api.speechcenter.verbio.com"), topic("generic"), language("en-US"),
-                                 sampleRate(8000) {}
+                                 sampleRate(8000), chunkSize(20000), numberOfChannels(1) {}
 
 Configuration::Configuration(int argc, char **argv) : Configuration() {
     parse(argc, argv);
@@ -38,6 +38,9 @@ void Configuration::parse(int argc, char **argv) {
             ("d,diarization", "Toggle for diarization", cxxopts::value<bool>(diarization)->default_value("false"))
             ("f,formatting", "Toggle for formatting", cxxopts::value<bool>(formatting)->default_value("false"))
             ("A,asr-version", "Selectable asr version. Must be V1 | V2", cxxopts::value(asrVersion))
+            ("c,chunk-size", "Size of audio chunk", cxxopts::value<uint32_t>(chunkSize)->default_value(std::to_string(chunkSize)))
+            ("n,number-of-channels", "Number of channels in the audio file (mono or stereo)", cxxopts::value<uint32_t>(numberOfChannels)->default_value(std::to_string(numberOfChannels)))
+            ("v,verbose", "Toogle for verbose output", cxxopts::value<bool>(verbose)->default_value("false"))
             ("h,help", "this help message");
     auto parsedOptions = options.parse(argc, argv);
 
@@ -91,4 +94,16 @@ bool Configuration::getDiarization() const {
 
 bool Configuration::getFormatting() const {
     return formatting;
+}
+
+bool Configuration::getVerbosity() const {
+    return verbose;
+}
+
+uint32_t Configuration::getChunkSize() const {
+    return chunkSize;
+}
+
+uint32_t Configuration::getNumberOfChannels() const {
+    return numberOfChannels;
 }

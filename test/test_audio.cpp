@@ -22,7 +22,7 @@ TEST(Audio, chunks) {
     constexpr int chunkLengthInSamples = 2203;
     std::array<int16_t, numberOfSamples> rawAudio;
     for (int i = 0; i < numberOfSamples; ++i) rawAudio[i] = i;
-    auto chunks = Audio(rawAudio.data(), 8000, numberOfSamples).getAudioChunks<chunkLengthInSamples>();
+    auto chunks = Audio(rawAudio.data(), 8000, numberOfSamples).getAudioChunks(2203);
     EXPECT_EQ(chunks.size(), std::ceil(static_cast<float>(numberOfSamples) / chunkLengthInSamples));
     for (int chunk = 0; chunk < chunks.size(); ++chunk)
         for (int i = 0; i < chunkLengthInSamples; ++i)
