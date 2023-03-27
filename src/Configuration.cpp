@@ -4,9 +4,13 @@
 
 #include <cxxopts.hpp>
 
+#include <Audio.h>
+
+#include <spdlog/spdlog.h>
+
 
 Configuration::Configuration() : host("csr.api.speechcenter.verbio.com"), topic("generic"), language("en-US"),
-                                 sampleRate(8000) {}
+                                 sampleRate(8000), chunkSize(20000), numberOfChannels(1) {}
 
 Configuration::Configuration(int argc, char **argv) : Configuration() {
     parse(argc, argv);
@@ -28,8 +32,6 @@ void Configuration::parse(int argc, char **argv) {
             ("l,language",
              "Language to use for the recognition: en-US, en-GB, pt-BR, es, es-419, tr, ja, fr, fr-CA, de, it",
              cxxopts::value(language)->default_value(language))
-            ("s,sample-rate", "Sampling rate for the audio recognition: 8000, 16000.",
-             cxxopts::value<uint32_t>(sampleRate)->default_value(std::to_string(sampleRate)))
             ("t,token", "Path to the authentication token file", cxxopts::value(tokenPath))
             ("H,host", "URL of the Host or server trying to reach",
              cxxopts::value(host)->default_value("eu.speechcenter.verbio.com"))
@@ -38,6 +40,8 @@ void Configuration::parse(int argc, char **argv) {
             ("d,diarization", "Toggle for diarization", cxxopts::value<bool>(diarization)->default_value("false"))
             ("f,formatting", "Toggle for formatting", cxxopts::value<bool>(formatting)->default_value("false"))
             ("A,asr-version", "Selectable asr version. Must be V1 | V2", cxxopts::value(asrVersion))
+            ("c,chunk-size", "Size of audio chunk", cxxopts::value<uint32_t>(chunkSize)->default_value(std::to_string(chunkSize)))
+            ("v,verbose", "Toogle for verbose output", cxxopts::value<bool>(verbose)->default_value("false"))
             ("h,help", "this help message");
     auto parsedOptions = options.parse(argc, argv);
 
@@ -47,6 +51,14 @@ void Configuration::parse(int argc, char **argv) {
     }
     if ((parsedOptions.count("t") == 0) == (parsedOptions.count("g") == 0))
         throw GrpcException("Topic and grammar options are mutually exclusive and at least one is needed.");
+
+    auto const &audio = Audio(audioPath);
+    sampleRate = audio.getSamplingRate();
+    numberOfChannels = audio.getChannels();
+
+    if (verbose){
+        spdlog::set_level(spdlog::level::trace);
+    }
 }
 
 std::string Configuration::getAudioPath() const {
@@ -73,10 +85,6 @@ std::string Configuration::getTopic() const {
     return topic;
 }
 
-uint32_t Configuration::getSampleRate() const {
-    return sampleRate;
-}
-
 bool Configuration::getNotSecure() const {
     return notSecure;
 }
@@ -91,4 +99,21 @@ bool Configuration::getDiarization() const {
 
 bool Configuration::getFormatting() const {
     return formatting;
+}
+
+bool Configuration::getVerbosity() const {
+    return verbose;
+}
+
+uint32_t Configuration::getChunkSize() const {
+    return chunkSize;
+}
+
+
+uint32_t Configuration::getSampleRate() const {
+    return sampleRate;
+}
+
+uint32_t Configuration::getNumberOfChannels() const {
+    return numberOfChannels;
 }

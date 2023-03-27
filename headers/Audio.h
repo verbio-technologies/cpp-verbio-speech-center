@@ -27,26 +27,17 @@ public:
 
     int64_t getBytesPerSamples() const { return sizeof(data[0]); }
 
-    template<std::size_t chunkLength>
-    std::vector<std::array<int16_t, chunkLength> > getAudioChunks() const;
+    std::vector<std::vector<int16_t> > getAudioChunks(size_t chunkLength) const;
+
+    int64_t getChannels() const { return channels; }
 
 private:
     std::unique_ptr<int16_t[]> data;
     int64_t length{0};
     int64_t samplingRate{0};
+    int64_t channels{1};
 };
 
-template<std::size_t chunkLength>
-std::vector<std::array<int16_t, chunkLength> > Audio::getAudioChunks() const {
-    const auto numberOfChunks = static_cast<std::size_t >(std::ceil(static_cast<double>(length) / chunkLength));
-    std::vector<std::array<int16_t, chunkLength> > chunks(numberOfChunks, std::array<int16_t, chunkLength>());
-    for (int i = 0; i < numberOfChunks - 1; ++i)
-        std::copy_n(&data[i * chunkLength], chunkLength, chunks[i].begin());
-    chunks[numberOfChunks - 1].fill(0);
-    std::copy_n(&data[(numberOfChunks - 1) * chunkLength], chunkLength - (numberOfChunks * chunkLength - length),
-                chunks[numberOfChunks - 1].begin());
-    return chunks;
-}
 
 #endif //CLI_CLIENT_AUDIO_H
 

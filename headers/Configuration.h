@@ -39,6 +39,12 @@ public:
 
     bool getFormatting() const;
 
+    bool getVerbosity() const;
+
+    uint32_t getChunkSize() const;
+
+    uint32_t getNumberOfChannels() const;
+
 private:
     std::string language;
     std::string topic;
@@ -51,6 +57,9 @@ private:
     bool notSecure;
     bool diarization;
     bool formatting;
+    bool verbose;
+    uint32_t chunkSize;
+    uint32_t numberOfChannels;
 };
 
 

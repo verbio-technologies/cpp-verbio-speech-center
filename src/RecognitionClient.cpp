@@ -34,19 +34,22 @@ void RecognitionClient::write(
 
     INFO("Sending audio...");
     int requestCount = 0;
+    double totalAudioSentInSeconds{0};
     for (const auto &request: buildAudioRequests()) {
         constexpr int bytesPerSamples = 2;// PCM16
+        double loopAudioSentInMilliseconds = request.audio().length() * 1000.00 / (bytesPerSamples * configuration.getSampleRate());
         auto deadline = std::chrono::system_clock::now() +
-                        std::chrono::milliseconds(
-                                request.audio().length() * 1000 / (bytesPerSamples * configuration.getSampleRate()));
+                        std::chrono::milliseconds(static_cast<int64_t>(loopAudioSentInMilliseconds));
         if (!stream->Write(request)) {
             auto status = stream->Finish();
             ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
             throw StreamException(status.error_message());
         }
         ++requestCount;
-        if (requestCount % 10 == 0)
-            INFO("Sent {} bytes of audio", requestCount * request.audio().length());
+        totalAudioSentInSeconds += loopAudioSentInMilliseconds / 1000.00;
+
+        DEBUG ("Sent {} bytes of audio", requestCount * request.audio().length());
+        DEBUG("Total time of audio sent {}", totalAudioSentInSeconds); 
 
         std::this_thread::sleep_until(deadline);
     }
@@ -174,7 +177,7 @@ std::vector<Request> RecognitionClient::buildAudioRequests() {
     INFO("Audio bytes: " + std::to_string(lengthInBytes));
 
     std::vector<Request> requests;
-    auto chunks = audio.getAudioChunks<20000>();
+    auto chunks = audio.getAudioChunks(configuration.getChunkSize());
     for (const auto &chunk: chunks) {
         Request request;
         request.set_audio(static_cast<const void *>(chunk.data()), chunk.size() * audio.getBytesPerSamples());
@@ -194,6 +197,7 @@ RecognitionClient::buildRecognitionParameters() {
     parameters->set_enable_formatting(configuration.getFormatting());
     INFO("Enabled diarization: {}", configuration.getDiarization());
     parameters->set_enable_diarization(configuration.getDiarization());
+    parameters->set_audio_channels_number(configuration.getNumberOfChannels());
 
     return parameters;
 }
@@ -202,8 +206,6 @@ std::unique_ptr<PCM>
 RecognitionClient::buildPCM(const uint32_t &sampleRate) {
     std::unique_ptr<PCM> pcm(
             new PCM());
-    if (sampleRate != 16000 && sampleRate != 8000)
-        throw UnsupportedSampleRate(std::to_string(sampleRate));
     pcm->set_sample_rate_hz(sampleRate);
     return pcm;
 }
