@@ -208,8 +208,6 @@ std::unique_ptr<PCM>
 RecognitionClient::buildPCM(const uint32_t &sampleRate) {
     std::unique_ptr<PCM> pcm(
             new PCM());
-    if (sampleRate != 16000 && sampleRate != 8000)
-        throw UnsupportedSampleRate(std::to_string(sampleRate));
     pcm->set_sample_rate_hz(sampleRate);
     return pcm;
 }
