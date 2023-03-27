@@ -48,10 +48,8 @@ void RecognitionClient::write(
         ++requestCount;
         totalAudioSentInSeconds += loopAudioSentInMilliseconds / 1000.00;
 
-        if(configuration.getVerbosity()){
-           INFO ("Sent {} bytes of audio", requestCount * request.audio().length());
-           INFO("Total time of audio sent {}", totalAudioSentInSeconds); 
-        }
+        DEBUG ("Sent {} bytes of audio", requestCount * request.audio().length());
+        DEBUG("Total time of audio sent {}", totalAudioSentInSeconds); 
 
         std::this_thread::sleep_until(deadline);
     }

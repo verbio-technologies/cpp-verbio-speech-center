@@ -6,6 +6,8 @@
 
 #include <Audio.h>
 
+#include <spdlog/spdlog.h>
+
 
 Configuration::Configuration() : host("csr.api.speechcenter.verbio.com"), topic("generic"), language("en-US"),
                                  sampleRate(8000), chunkSize(20000), numberOfChannels(1) {}
@@ -53,6 +55,10 @@ void Configuration::parse(int argc, char **argv) {
     auto const &audio = Audio(audioPath);
     sampleRate = audio.getSamplingRate();
     numberOfChannels = audio.getChannels();
+
+    if (verbose){
+        spdlog::set_level(spdlog::level::trace);
+    }
 }
 
 std::string Configuration::getAudioPath() const {
