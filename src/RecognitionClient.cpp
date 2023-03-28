@@ -1,5 +1,6 @@
 #include "RecognitionClient.h"
 
+
 #include "Audio.h"
 #include "Configuration.h"
 #include "gRpcExceptions.h"
@@ -12,6 +13,7 @@
 #include <future>
 #include <sstream>
 #include <thread>
+
 
 using namespace speechcenter::recognizer::v1;
 typedef RecognitionStreamingRequest Request;
@@ -36,18 +38,18 @@ void RecognitionClient::write(
     int requestCount = 0;
     for (const auto &request: buildAudioRequests()) {
         constexpr int bytesPerSamples = 2;// PCM16
-        auto deadline = std::chrono::system_clock::now() +
-                        std::chrono::milliseconds(
-                                request.audio().length() * 1000 / (bytesPerSamples * configuration.getSampleRate()));
+        const auto requestAudioLength = std::chrono::milliseconds(
+                request.audio().length() * 1000 / (bytesPerSamples * configuration.getSampleRate()));
+        auto deadline = std::chrono::system_clock::now() + requestAudioLength;
         if (!stream->Write(request)) {
             auto status = stream->Finish();
             ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
             throw StreamException(status.error_message());
         }
+        latencyLog.reportRequest(requestCount * requestAudioLength, (requestCount + 1) *  requestAudioLength, std::chrono::system_clock::now());
         ++requestCount;
-        if (requestCount % 10 == 0)
-            INFO("Sent {} bytes of audio", requestCount * request.audio().length());
-
+         if (requestCount % 10 == 0)
+             INFO("Sent {} bytes of audio", requestCount * request.audio().length());
         std::this_thread::sleep_until(deadline);
     }
     stream->WritesDone();
@@ -130,10 +132,18 @@ void RecognitionClient::connect(const Configuration &configuration) {
                     response.result().alternatives().Get(0);
             if (firstAlternative.words_size() > 0) {
                 INFO("Segment start: {}", firstAlternative.words()[0].start_time());
+
+
+
                 std::cout << firstAlternative.transcript() << std::endl;
                 INFO("Segment end: {}",
                      firstAlternative.words()[firstAlternative.words_size() - 1].end_time());
             }
+            auto audioTimeStamp = std::chrono::milliseconds (static_cast<long>(firstAlternative.words()[firstAlternative.words_size() - 1].end_time() * 1000));
+            if (audioTimeStamp == std::chrono::milliseconds(0))
+                latencyLog.reportResponse(std::chrono::system_clock::now());
+            else
+                latencyLog.reportResponse(audioTimeStamp,std::chrono::system_clock::now());
         } else {
             WARN("No recognition result alternatives!");
         }
@@ -145,6 +155,8 @@ void RecognitionClient::connect(const Configuration &configuration) {
         ERROR("RESPONSE ERROR!\n\n");
         throw StreamException(status.error_message());
     }
+    auto stats = latencyLog.calculateStats();
+    INFO("Latency mean = {} ms, stddev = {} ms", stats.mean.count(), stats.standardDeviation.count());
 }
 
 Request
@@ -174,7 +186,7 @@ std::vector<Request> RecognitionClient::buildAudioRequests() {
     INFO("Audio bytes: " + std::to_string(lengthInBytes));
 
     std::vector<Request> requests;
-    auto chunks = audio.getAudioChunks<20000>();
+    auto chunks = audio.getAudioChunks<200>();
     for (const auto &chunk: chunks) {
         Request request;
         request.set_audio(static_cast<const void *>(chunk.data()), chunk.size() * audio.getBytesPerSamples());

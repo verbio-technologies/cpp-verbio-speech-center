@@ -3,18 +3,23 @@
 
 #include "Configuration.h"
 
+
+#include "latencyStatistics.h"
+
 #include "recognition.grpc.pb.h"
 #include "recognition.pb.h"
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/security/credentials.h>
 
+
 using namespace speechcenter::recognizer::v1;
 
 class Audio;
 
+
 class RecognitionClient {
 public:
-    RecognitionClient(const Configuration &configuration);
+    explicit RecognitionClient(const Configuration &configuration);
 
     ~RecognitionClient();
 
@@ -25,6 +30,7 @@ private:
     std::shared_ptr<grpc::Channel> channel;
     grpc::ClientContext context;
     Configuration configuration;
+    LatencyLog latencyLog;
 
     static RecognitionResource_Topic convertTopic(const std::string &topicName);
 
