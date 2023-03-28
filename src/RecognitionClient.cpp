@@ -132,18 +132,11 @@ void RecognitionClient::connect(const Configuration &configuration) {
                     response.result().alternatives().Get(0);
             if (firstAlternative.words_size() > 0) {
                 INFO("Segment start: {}", firstAlternative.words()[0].start_time());
-
-
-
                 std::cout << firstAlternative.transcript() << std::endl;
                 INFO("Segment end: {}",
                      firstAlternative.words()[firstAlternative.words_size() - 1].end_time());
             }
-            auto audioTimeStamp = std::chrono::milliseconds (static_cast<long>(firstAlternative.words()[firstAlternative.words_size() - 1].end_time() * 1000));
-            if (audioTimeStamp == std::chrono::milliseconds(0))
-                latencyLog.reportResponse(std::chrono::system_clock::now());
-            else
-                latencyLog.reportResponse(audioTimeStamp,std::chrono::system_clock::now());
+            reportResponse(std::chrono::milliseconds (static_cast<long>(firstAlternative.words()[firstAlternative.words_size() - 1].end_time() * 1000)));
         } else {
             WARN("No recognition result alternatives!");
         }
@@ -157,6 +150,13 @@ void RecognitionClient::connect(const Configuration &configuration) {
     }
     auto stats = latencyLog.calculateStats();
     INFO("Latency mean = {} ms, stddev = {} ms", stats.mean.count(), stats.standardDeviation.count());
+}
+
+void RecognitionClient::reportResponse(const std::chrono::milliseconds &audioTimeStamp) {
+    if (audioTimeStamp == std::chrono::milliseconds(0))
+        latencyLog.reportResponse(std::chrono::system_clock::now());
+    else
+        latencyLog.reportResponse(audioTimeStamp,std::chrono::system_clock::now());
 }
 
 Request

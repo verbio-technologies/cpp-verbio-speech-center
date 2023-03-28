@@ -54,6 +54,7 @@ private:
 
     void
     write(std::shared_ptr<grpc::ClientReaderWriter<RecognitionStreamingRequest, RecognitionStreamingResponse>> stream);
+    void reportResponse(const std::chrono::milliseconds &audioTimeStamp);
 };
 
 #endif
