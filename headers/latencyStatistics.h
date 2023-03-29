@@ -36,17 +36,7 @@ public:
     void reportResponse(const std::chrono::system_clock::time_point &responseReceivedTime);
     [[nodiscard]] size_t size() const;
     [[nodiscard]] LatencyStats calculateStats() const;
-
-    [[nodiscard]] std::string getReport() const {
-        std::ostringstream oss;
-        oss << std::endl;
-        for (const auto &measure : measures) {
-            for (const auto &responseTime : measure.recievedReponsesTime) {
-                oss << measure.audioStartTime.count() << ", " << measure.audioEndTime.count() << ", " << std::chrono::duration_cast<std::chrono::milliseconds>(responseTime - measure.requestSentTime).count() << std::endl;
-            }
-        }
-        return oss.str();
-    }
+    [[nodiscard]] std::string getReport() const;
 
 private:
     std::vector<LatencyMeasure> measures;

@@ -58,3 +58,22 @@ LatencyStats LatencyLog::calculateStats() const {
             std::chrono::milliseconds(latencyCount != 0 ? static_cast<long>(std::sqrt((cumsum2 / latencyCount) - mean.count()*mean.count()))  : 0)
     };
 }
+
+std::string LatencyLog::getReport() const {
+    std::ostringstream oss;
+    oss << "requests: [" << std::endl;
+    for (const auto &measure : measures) {
+        if (!measure.recievedReponsesTime.empty()) {
+            oss << "  {" << std::endl
+                << "    audio_time_stamps: { start_time_in_ms: " << measure.audioStartTime.count() << ", ";
+            oss << "    end_time_in_ms: " << measure.audioEndTime.count() << "} , " << std::endl;
+            oss << "    latencies_in_ms: [";
+            for (const auto &responseTime: measure.recievedReponsesTime)
+                oss << std::chrono::duration_cast<std::chrono::milliseconds>(responseTime - measure.requestSentTime).count() << ", ";
+            oss << "], " << std::endl;
+            oss << "  }," << std::endl;
+        }
+    }
+    oss << "]" << std::endl;
+    return oss.str();
+}
