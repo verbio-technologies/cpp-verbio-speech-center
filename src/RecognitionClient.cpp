@@ -48,8 +48,10 @@ void RecognitionClient::write(
         }
         latencyLog.reportRequest(requestCount * requestAudioLength, (requestCount + 1) *  requestAudioLength, std::chrono::system_clock::now());
         ++requestCount;
-         if (requestCount % 10 == 0)
-             INFO("Sent {} bytes of audio", requestCount * request.audio().length());
+         if (requestCount % 10 == 0) {
+            INFO("Sent {} seconds of audio in {} bytes", (requestCount*requestAudioLength).count() / 1000.00, requestCount * request.audio().length());
+
+        }
         std::this_thread::sleep_until(deadline);
     }
     stream->WritesDone();
@@ -104,6 +106,8 @@ std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
     return channel;
 }
 
+
+
 void RecognitionClient::connect(const Configuration &configuration) {
     std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> stream(stub_->StreamingRecognize(&context));
 
@@ -126,6 +130,9 @@ void RecognitionClient::connect(const Configuration &configuration) {
     Response response;
 
     while (stream->Read(&response)) {
+
+        INFO("Response: {} ", response.DebugString());
+
         if (response.result().is_final() &&
             !response.result().alternatives().empty()) {
             RecognitionAlternative firstAlternative =
@@ -150,6 +157,7 @@ void RecognitionClient::connect(const Configuration &configuration) {
     }
     auto stats = latencyLog.calculateStats();
     INFO("Latency mean = {} ms, stddev = {} ms", stats.mean.count(), stats.standardDeviation.count());
+    INFO("Measures: \n{} ", latencyLog.getReport());
 }
 
 void RecognitionClient::reportResponse(const std::chrono::milliseconds &audioTimeStamp) {
