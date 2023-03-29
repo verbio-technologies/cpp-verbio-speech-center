@@ -142,8 +142,8 @@ void RecognitionClient::connect(const Configuration &configuration) {
                 std::cout << firstAlternative.transcript() << std::endl;
                 INFO("Segment end: {}",
                      firstAlternative.words()[firstAlternative.words_size() - 1].end_time());
+                reportResponse(std::chrono::milliseconds (static_cast<long>(firstAlternative.words()[firstAlternative.words_size() - 1].end_time() * 1000)));
             }
-            reportResponse(std::chrono::milliseconds (static_cast<long>(firstAlternative.words()[firstAlternative.words_size() - 1].end_time() * 1000)));
         } else {
             WARN("No recognition result alternatives!");
         }
