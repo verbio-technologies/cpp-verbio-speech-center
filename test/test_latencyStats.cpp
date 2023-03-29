@@ -105,7 +105,7 @@ TEST(Latencylog, response_prior_to_request) {
     log.reportResponse(now + latency - stdDeviation);
     log.reportResponse(now + delayBetweenRequests + latency - stdDeviation);
 
-    EXPECT_THROW(log.calculateStats(), std::runtime_error) << "Accepted a response time prior to a request time";
+    EXPECT_THROW(auto stats = log.calculateStats(), std::runtime_error) << "Accepted a response time prior to a request time";
 }
 
 
