@@ -13,7 +13,24 @@ Before you start you will need:
 
 ## Step by step
 
-It is recommended to create a `/build` subdirectory in the project root, and run all the following commands from there:
+### Check conan version
+
+Check the version of conan:
+```shell
+conan --version
+```
+if the version is < 1.3 or >= 2.* you need to check the documentation at:
+
+[https://docs.conan.io/1/installation.html]()
+
+on how to install conan with virtualenvs, and install a compatible version with a command like:
+```shell
+pip install conan==1.54.0
+```
+
+### Create build directory
+
+It is recommended to create a `/build` subdirectory in the project root, and run all the following commands from this build directory.
 
 ### Install conan dependencies
 
@@ -35,7 +52,7 @@ There is already a step in the CMake configuration of this project that will gen
 ### Configuration
 From `/build`:
 ```
-cmake .
+cmake ..
 ```
 
 This will generate all the configuration files needed and will create all the necessary C++ from the .proto file that will allow your code to communicate with the Speech Center platform.
@@ -46,7 +63,7 @@ You can use cmake to compile the code:
 ```
 cmake --build . --target all 
 ```
-Once the project is compile you can check that everything went as expected by executing the unit tests:
+Once the project is compiled you can check that everything went as expected by executing the unit tests:
 ```
 ctest
 ```
@@ -55,8 +72,8 @@ The cli_client will be using the generated C++ code to connect to the Speech Cen
 
 **Example**
 
-```commandline
-./>$ ./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H us.speechcenter.verbio.com -V V1
+```shell
+./cli_client -a audio.wav -T GENERIC -t token_file -l en-US --asr-version V1  -H us.speechcenter.verbio.com -s 16000
 ```
 
 Which will give an output along these lines:
@@ -71,4 +88,8 @@ Which will give an output along these lines:
 (...)
  ```
 
-Use the `--help` command for more options.
+You can also run:
+```shell
+./cli_client --help
+```
+to list all options.
