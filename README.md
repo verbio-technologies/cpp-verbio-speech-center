@@ -8,14 +8,14 @@ In order to compile the source code you will need g++>=7, cmake-3.>= 20 and cona
 
 Before you start you will need: 
 1. Speech center proto file (provided in this repository)
-2. Platform access token (provided to you by Verbio Technologies) if you do not have one, register on our [website](https://www.speechcenter.verbio.com)
+2. Platform access token (provided to you by Verbio Technologies) if you do not have one, check our [documentation](https://speechcenter.verbio.com/documentation)
 3. Speech center CSR endpoint
 
 ## Step by step
 
 ### Check conan version
 
-Check the version of conan:
+Run:
 ```shell
 conan --version
 ```
@@ -34,20 +34,14 @@ It is recommended to create a `/build` subdirectory in the project root, and run
 
 ### Install conan dependencies
 
-They are already writen in the `conanfile.txt` file in this repository.
+Conan dependencies are specified in `conanfile.txt` file in this repository.
 
-The grp and protobuf packages are necessary to automatically generate from the .proto specification all the necessary code that the main code will use to connect with the gRPC server in the cloud.
-
-To install, (from `/build`) run:
+To install those dependencies (from `/build`) run:
 ```
 conan install ..
 ```
-
 This will also set up the necessary files for CMake build inside the `/build` folder.
 
-### Generate the gRPC code for C++
-
-There is already a step in the CMake configuration of this project that will generate the C++ code for gRPC. You do not have to worry about it. 
 
 ### Configuration
 From `/build`:
