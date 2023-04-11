@@ -49,7 +49,7 @@ From `/build`:
 cmake ..
 ```
 
-This will generate all the configuration files needed and will create all the necessary C++ from the .proto file that will allow your code to communicate with the Speech Center platform.
+This will generate all the configuration files needed.
 
 ### Compile
 
@@ -67,7 +67,7 @@ The cli_client will be using the generated C++ code to connect to the Speech Cen
 **Example**
 
 ```shell
-./cli_client -a audio.wav -T GENERIC -t token_file -l en-US --asr-version V1  -H us.speechcenter.verbio.com -s 16000
+./cli_client -a audio.wav -T GENERIC -t token_file -l en-US --asr-version V1  -H us.speechcenter.verbio.com -s 16000 --labels 'project1 project2'
 ```
 
 Which will give an output along these lines:

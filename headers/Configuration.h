@@ -39,6 +39,8 @@ public:
 
     bool getFormatting() const;
 
+    std::string getLabels()  const;
+
 private:
     std::string language;
     std::string topic;
@@ -51,6 +53,7 @@ private:
     bool notSecure;
     bool diarization;
     bool formatting;
+    std::string labels;
 };
 
 

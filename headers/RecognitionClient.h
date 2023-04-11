@@ -28,6 +28,8 @@ private:
 
     static RecognitionResource_Topic convertTopic(const std::string &topicName);
 
+    std::vector<std::string> labelsVector() const;
+
     RecognitionStreamingRequest buildRecognitionConfig();
 
     std::vector<RecognitionStreamingRequest> buildAudioRequests();
