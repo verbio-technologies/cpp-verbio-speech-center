@@ -102,7 +102,7 @@ std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
     return channel;
 }
 
-void RecognitionClient::connect(const Configuration &configuration) {
+void RecognitionClient::connect() {
     std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> stream(stub_->StreamingRecognize(&context));
 
     INFO("Stream CREATED. State {}", toascii(channel->GetState(true)));

@@ -18,7 +18,7 @@ public:
 
     ~RecognitionClient();
 
-    void connect(const Configuration &configuration);
+    void connect();
 
 private:
     std::unique_ptr<Recognizer::Stub> stub_;
