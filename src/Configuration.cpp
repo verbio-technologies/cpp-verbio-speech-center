@@ -38,6 +38,7 @@ void Configuration::parse(int argc, char **argv) {
             ("d,diarization", "Toggle for diarization", cxxopts::value<bool>(diarization)->default_value("false"))
             ("f,formatting", "Toggle for formatting", cxxopts::value<bool>(formatting)->default_value("false"))
             ("A,asr-version", "Selectable asr version. Must be V1 | V2", cxxopts::value(asrVersion))
+            ("L,labels", "String with space separated list of labels", cxxopts::value(labels)->default_value(""))
             ("h,help", "this help message");
     auto parsedOptions = options.parse(argc, argv);
 
@@ -91,4 +92,8 @@ bool Configuration::getDiarization() const {
 
 bool Configuration::getFormatting() const {
     return formatting;
+}
+
+std::string Configuration::getLabels()  const {
+    return labels;
 }

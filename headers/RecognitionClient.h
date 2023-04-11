@@ -18,7 +18,7 @@ public:
 
     ~RecognitionClient();
 
-    void connect(const Configuration &configuration);
+    void connect();
 
 private:
     std::unique_ptr<Recognizer::Stub> stub_;
@@ -27,6 +27,8 @@ private:
     Configuration configuration;
 
     static RecognitionResource_Topic convertTopic(const std::string &topicName);
+
+    std::vector<std::string> labelsVector() const;
 
     RecognitionStreamingRequest buildRecognitionConfig();
 

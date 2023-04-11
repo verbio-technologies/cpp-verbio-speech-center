@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     try {
         Configuration configuration(argc, argv);
         RecognitionClient client(configuration);
-        client.connect(configuration);
+        client.connect();
     } catch (GrpcException &e) {
         ERROR(e.what());
         return -1;
