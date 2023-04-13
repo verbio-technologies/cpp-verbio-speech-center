@@ -9,6 +9,7 @@ find_package(gRPC REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(SndFile REQUIRED)
+find_package(cpr REQUIRED)
 
 add_subdirectory(proto)
 add_subdirectory(src)
