@@ -7,7 +7,7 @@
 #include <chrono>
 #include "nlohmann/json.hpp"
 
-const char* SpeechCenterCredentials::url = "https://auth.speechcenter.verbio.com:444/api/v1/token";
+const char* SpeechCenterCredentials::url = "https://dev.auth.speechcenter.verbio.com:444/api/v1/token";
 
 SpeechCenterCredentials::SpeechCenterCredentials(const std::string clientId,
                                                  const std::string clientSecret,
@@ -80,4 +80,6 @@ void SpeechCenterCredentials::writeTokenFile(std::string token) const {
         throw IOError("Unable to open '" + filePath + "'");
 
     file << token;
+
+    file.close();
 }

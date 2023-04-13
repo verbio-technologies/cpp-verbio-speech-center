@@ -87,3 +87,15 @@ You can also run:
 ./cli_client --help
 ```
 to list all options.
+
+
+## Automatically Refresh Service Token
+This repository optionally implements an automatic token update. To do so, you must specify your client-id and client-secret (find them in the Client Credentials section of the [user dashboard](https://dashboard.speechcenter.verbio.com)).
+
+You must also specify a token file, where the token will be stored and updated in case it is invalid or expired.
+
+**Example**
+```console
+./cli_client -a audio.wav -T GENERIC -t token_file -l en-US --asr-version V2  -H us.speechcenter.verbio.com -s 16000 --labels --client-id 'your-client-id' --client-secret 'your-client-secret'
+
+```
