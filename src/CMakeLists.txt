@@ -8,7 +8,14 @@ add_library(speech-center-client STATIC
         Audio.cpp
         SpeechCenterCredentials.cpp)
 
-target_link_libraries(speech-center-client PUBLIC speech-center-grpc cxxopts::cxxopts spdlog::spdlog SndFile::sndfile cpr::cpr)
+target_link_libraries(speech-center-client PUBLIC
+        speech-center-grpc
+        cxxopts::cxxopts
+        spdlog::spdlog
+        SndFile::sndfile
+        cpr::cpr
+        jwt-cpp::jwt-cpp
+        nlohmann_json::nlohmann_json)
 
 add_executable(cli_client
         main.cpp)

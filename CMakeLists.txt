@@ -10,6 +10,8 @@ find_package(Protobuf REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(SndFile REQUIRED)
 find_package(cpr REQUIRED)
+find_package(jwt-cpp REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 add_subdirectory(proto)
 add_subdirectory(src)

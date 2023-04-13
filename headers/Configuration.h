@@ -41,6 +41,10 @@ public:
 
     std::string getLabels()  const;
 
+    std::string getClientId()  const;
+
+    std::string getClientSecret()  const;
+
 private:
     std::string language;
     std::string topic;
@@ -54,6 +58,8 @@ private:
     bool diarization;
     bool formatting;
     std::string labels;
+    std::string clientId;
+    std::string clientSecret;
 };
 
 

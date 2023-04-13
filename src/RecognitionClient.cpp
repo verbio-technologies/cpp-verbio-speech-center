@@ -5,6 +5,7 @@
 #include "gRpcExceptions.h"
 
 #include "logger.h"
+#include "SpeechCenterCredentials.h"
 
 #include <grpcpp/create_channel.h>
 
@@ -73,6 +74,15 @@ RecognitionClient::~RecognitionClient() = default;
 
 std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
     auto jwt = readFileContent(configuration.getTokenPath());
+
+    if (!configuration.getClientId().empty() && !configuration.getClientSecret().empty()) {
+        auto pair = SpeechCenterCredentials{configuration.getClientId(),
+                                            configuration.getClientSecret(),
+                                            jwt,
+                                            configuration.getTokenPath()}();
+        if (pair.first)
+            jwt = pair.second;
+    }
 
     // GRPC Non/secure toggle
     if (configuration.getNotSecure()) {// Not secure:
