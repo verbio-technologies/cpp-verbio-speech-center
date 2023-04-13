@@ -63,14 +63,19 @@ std::string SpeechCenterCredentials::newToken() const {
 
 int64_t SpeechCenterCredentials::expirationTime() const {
 
-    const auto decoded = jwt::decode<jwt::traits::nlohmann_json>(token);
+    try {
+        const auto decoded = jwt::decode<jwt::traits::nlohmann_json>(token);
 
-    auto claims = decoded.get_payload_claims();
+        auto claims = decoded.get_payload_claims();
 
-    if (claims.find("exp") == claims.end())
-        throw GrpcException{"expiration claim not present in token"};
+        if (claims.find("exp") == claims.end())
+            return 0;
+        else
+            return claims["exp"].as_int();
 
-    return claims["exp"].as_int();
+    }catch (...){
+        return 0;
+    }
 }
 
 void SpeechCenterCredentials::writeTokenFile(std::string token) const {
