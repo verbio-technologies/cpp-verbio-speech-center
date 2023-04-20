@@ -4,6 +4,11 @@ cxxopts/3.0.0
 spdlog/1.9.2
 libsndfile/1.0.31
 gtest/cci.20210126
+cpr/1.9.3
+openssl/1.1.1t
+zlib/1.2.13
+jwt-cpp/0.6.0
+nlohmann_json/3.11.2
 
 [generators]
 cmake_find_package

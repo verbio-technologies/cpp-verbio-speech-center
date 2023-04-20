@@ -1,7 +1,3 @@
-//
-// Created by gserrahima on 28/02/23.
-//
-
 #include "Audio.h"
 
 #include "gRpcExceptions.h"
@@ -16,8 +12,6 @@ Audio::Audio(const int16_t *const _data, int _samplingRate, int lengthInFrames) 
 }
 
 Audio::~Audio() = default;
-
-#include <iostream>
 
 Audio::Audio(const std::string &audioPath) {
     SndfileHandle sndfileHandle(audioPath);

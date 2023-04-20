@@ -39,6 +39,8 @@ void Configuration::parse(int argc, char **argv) {
             ("f,formatting", "Toggle for formatting", cxxopts::value<bool>(formatting)->default_value("false"))
             ("A,asr-version", "Selectable asr version. Must be V1 | V2", cxxopts::value(asrVersion))
             ("L,labels", "String with space separated list of labels", cxxopts::value(labels)->default_value(""))
+            ("client-id", "Client id for token refresh", cxxopts::value(clientId)->default_value(""))
+            ("client-secret", "Client secret for token refresh", cxxopts::value(clientSecret)->default_value(""))
             ("h,help", "this help message");
     auto parsedOptions = options.parse(argc, argv);
 
@@ -48,6 +50,7 @@ void Configuration::parse(int argc, char **argv) {
     }
     if ((parsedOptions.count("t") == 0) == (parsedOptions.count("g") == 0))
         throw GrpcException("Topic and grammar options are mutually exclusive and at least one is needed.");
+
 }
 
 std::string Configuration::getAudioPath() const {
@@ -96,4 +99,12 @@ bool Configuration::getFormatting() const {
 
 std::string Configuration::getLabels()  const {
     return labels;
+}
+
+std::string Configuration::getClientId()  const {
+    return clientId;
+}
+
+std::string Configuration::getClientSecret()  const {
+    return clientSecret;
 }
