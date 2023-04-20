@@ -13,12 +13,27 @@ Before you start you will need:
 
 ## Step by step
 
-It is recommended to create a `/build` subdirectory in the project root, and run all the following commands from there:
+### Install Conan dependency manager
+
+Run:
+```shell
+conan --version
+```
+if the version is < 1.3 or >= 2.* you need to check the documentation at:
+
+[https://docs.conan.io/1/installation.html]()
+
+on how to install conan with virtualenvs, and install a compatible version with a command like:
+```shell
+pip install conan==1.54.0
+```
+
 
 ### Install conan dependencies
 
-They are already writen in the `conanfile.txt` file in this repository.
+It is recommended to create a `/build` subdirectory in the project root, and run all the following commands from there:
 
+They are already writen in the `conanfile.txt` file in this repository.
 The grp and protobuf packages are necessary to automatically generate from the .proto specification all the necessary code that the main code will use to connect with the gRPC server in the cloud.
 
 To install, (from `/build`) run:
