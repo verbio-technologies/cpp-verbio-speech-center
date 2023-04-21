@@ -42,7 +42,7 @@ void RecognitionClient::write(
                                 request.audio().length() * 1000 / (bytesPerSamples * configuration.getSampleRate()));
         if (!stream->Write(request)) {
             auto status = stream->Finish();
-            ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
+            ERROR("{} (GRPC_ERR_CODE {} - {})", status.error_message(), status.error_code(), status.error_details());
             throw StreamException(status.error_message());
         }
         ++requestCount;
@@ -76,6 +76,7 @@ std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
     auto jwt = readFileContent(configuration.getTokenPath());
 
     if (!configuration.getClientId().empty() && !configuration.getClientSecret().empty()) {
+        INFO("Automatic token refresh enabled. Writing to file {}", configuration.getTokenPath());
         auto pair = SpeechCenterCredentials{configuration.getClientId(),
                                             configuration.getClientSecret(),
                                             jwt,
