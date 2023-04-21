@@ -50,7 +50,7 @@ There is already a step in the CMake configuration of this project that will gen
 ### Configuration
 From `/build`:
 ```
-cmake .
+cmake ..
 ```
 
 This will generate all the configuration files needed and will create all the necessary C++ from the .proto file that will allow your code to communicate with the Speech Center platform.
@@ -73,7 +73,7 @@ The cli_client will be using the generated C++ code to connect to the Speech Cen
 **Example**
 
 ```commandline
-./>$ ./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H us.speechcenter.verbio.com -V V1
+./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H us.speechcenter.verbio.com -V V1
 ```
 
 Which will give an output along these lines:
@@ -95,7 +95,9 @@ Use the `--help` command for more options.
 ### Speech Center important information
 
 Speech Center website: https://speechcenter.verbio.com
+
 Speech Center dashboard: https://dashboard.speechcenter.verbio.com
+
 Speech Center authorization service endpoint: https://auth.speechcenter.verbio.com:444/api/v1/token
 
 ### Dashboard 
@@ -111,7 +113,7 @@ Dashboard serves two main purposes:
 
 All speech requests sent to Speech Center must have a valid authorization token in order for the system to successfully process the request. These tokens have a validity period of 1 hour and can be generated on demand using your customer credentials.
 
-Your customer credentials can be retrieved through the (Speech Center Dashboard)[https://dashboard.speechcenter.verbio.com] by logging in with the customer account supplied to you by Verbio.
+Your customer credentials can be retrieved through the [Speech Center Dashboard](https://dashboard.speechcenter.verbio.com) by logging in with the customer account supplied to you by Verbio.
 
 #### Authentication flow
 
@@ -160,8 +162,8 @@ Body:
 Status codes:
 ```
 HTTP 200: OK
-HTTP 400: KO - Provided request format was  
-HTTP 401:  KO - There was a problem with the provided credentials.
+HTTP 400: KO - Provided request format was invalid.
+HTTP 401: KO - There was a problem with the provided credentials.
 HTTP 5XX: KO - There was a problem with the server.
 ```
 
