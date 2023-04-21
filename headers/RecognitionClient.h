@@ -10,6 +10,9 @@
 
 using namespace speechcenter::recognizer::v1;
 
+typedef RecognitionStreamingRequest Request;
+typedef RecognitionStreamingResponse Response;
+
 class Audio;
 
 class RecognitionClient {
@@ -18,7 +21,7 @@ public:
 
     ~RecognitionClient();
 
-    void connect();
+    void performStreamingRecognition();
 
 private:
     std::unique_ptr<Recognizer::Stub> stub_;
@@ -42,14 +45,21 @@ private:
 
     RecognitionConfig_AsrVersion buildAsrVersion();
 
-    static std::string readFileContent(const std::string &path);
-
-    static std::string sanitize(std::string str);
-
     std::shared_ptr<grpc::Channel> createChannel();
 
     void
     write(std::shared_ptr<grpc::ClientReaderWriter<RecognitionStreamingRequest, RecognitionStreamingResponse>> stream);
+
+    std::string getJwtToken() const;
+
+    void establishConnection(const std::string &jwt);
+
+    std::shared_ptr<grpc::Channel> getReadyChannel() const;
+
+    void readFromStream(std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> &stream) const;
+
+    std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> &
+    bidirectionalStream(std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> &stream);
 };
 
 #endif

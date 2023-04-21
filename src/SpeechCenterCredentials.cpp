@@ -1,3 +1,10 @@
+#include <thread>
+#include <sstream>
+#include <future>
+#include <grpcpp/create_channel.h>
+#include "Configuration.h"
+#include "Audio.h"
+#include "RecognitionClient.h"
 #include "SpeechCenterCredentials.h"
 #include <cpr/cpr.h>
 #include "logger.h"
@@ -9,37 +16,34 @@
 
 const char* SpeechCenterCredentials::url = "https://auth.speechcenter.verbio.com:444/api/v1/token";
 
-SpeechCenterCredentials::SpeechCenterCredentials(const std::string clientId,
-                                                 const std::string clientSecret,
-                                                 const std::string token,
-                                                 const std::string filePath)
-        : clientId{clientId},
-          clientSecret{clientSecret},
-          token{token},
-          filePath{filePath} {}
+SpeechCenterCredentials::SpeechCenterCredentials(const std::string& tokenFilePath) : tokenFilePath{tokenFilePath} {
 
-std::pair<bool, std::string> SpeechCenterCredentials::operator()() {
-
-    auto validUntil = expirationTime();
-
-    auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-    if( validUntil > now)
-        return {false, ""};
-
-    auto token = newToken();
-
-    writeTokenFile(token);
-
-    return {true, token};
 }
 
-std::string SpeechCenterCredentials::newToken() const {
+std::string SpeechCenterCredentials::getToken() {
+    token = readFileContent(tokenFilePath);
+    auto validUntil = decodeExpirationTime();
+    auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    if (validUntil > now) return token;
+
+    if(!clientId.empty() && !clientSecret.empty()){
+        INFO("Current token expired, requesting a new token...");
+        auto newToken = requestNewToken();
+        writeTokenToFile(newToken);
+        return newToken;
+    }
+    else {
+        WARN("The token in file '{}' is expired but no client credentials have been provided. Cannot request a token refresh. Please log in to https://dashboard.speechcenter.verbio.com and retrieve your client credentials from the 'Credentials' page.", tokenFilePath);
+    }
+    return token;
+}
+
+std::string SpeechCenterCredentials::requestNewToken() const {
 
     std::string json{
-            "{\"client_id\":\""
+            R"({"client_id":")"
             + clientId
-            + "\",\"client_secret\":\""
+            + R"(","client_secret":")"
             + clientSecret
             + "\"}"
     };
@@ -54,20 +58,17 @@ std::string SpeechCenterCredentials::newToken() const {
     auto credentials = nlohmann::json::parse(response.text);
 
     if (credentials.find("access_token") == credentials.end())
-        throw GrpcException{"access token not present in credentials returned by authorization server"};
+        throw GrpcException{"Access token not present in credentials returned by authorization server"};
 
     std::string new_token = credentials["access_token"];
 
     return new_token;
 }
 
-int64_t SpeechCenterCredentials::expirationTime() const {
-
+int64_t SpeechCenterCredentials::decodeExpirationTime() const {
     try {
         const auto decoded = jwt::decode<jwt::traits::nlohmann_json>(token);
-
         auto claims = decoded.get_payload_claims();
-
         if (claims.find("exp") == claims.end())
             return 0;
         else
@@ -78,13 +79,38 @@ int64_t SpeechCenterCredentials::expirationTime() const {
     }
 }
 
-void SpeechCenterCredentials::writeTokenFile(std::string token) const {
-    std::ofstream file{filePath};
-
+void SpeechCenterCredentials::writeTokenToFile(std::string token) const {
+    std::ofstream file{tokenFilePath};
     if(!file)
-        throw IOError("Unable to open '" + filePath + "'");
-
+        throw IOError("Unable to open file '" + tokenFilePath + "'");
     file << token;
-
     file.close();
+}
+
+void SpeechCenterCredentials::setClientCredentials(const std::string &client_id, const std::string &client_secret) {
+    clientId = client_id;
+    clientSecret = client_secret;
+}
+
+std::string SpeechCenterCredentials::readFileContent(const std::string &path) {
+    std::ifstream ifs(path);
+    std::string content;
+    if (ifs) {
+        std::ostringstream oss;
+        oss << ifs.rdbuf();
+        content = oss.str();
+
+    } else {
+        throw IOError("Unable to open '" + path + "'");
+    }
+
+    return sanitize(content);
+}
+
+std::string SpeechCenterCredentials::sanitize(std::string str) {
+    size_t endpos = str.find_last_not_of("\r\n");
+    if (endpos != std::string::npos) {
+        str.substr(0, endpos + 1).swap(str);
+    }
+    return str;
 }
