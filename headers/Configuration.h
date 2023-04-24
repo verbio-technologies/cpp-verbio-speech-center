@@ -39,7 +39,7 @@ public:
 
     bool getFormatting() const;
 
-    std::string getLabels()  const;
+    std::string getLabel()  const;
 
     std::string getClientId()  const;
 
@@ -57,7 +57,7 @@ private:
     bool notSecure;
     bool diarization;
     bool formatting;
-    std::string labels;
+    std::string label;
     std::string clientId;
     std::string clientSecret;
 };

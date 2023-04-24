@@ -8,3 +8,4 @@ cmake-build-release
 *.wav
 *.token
 cmake-*
+.vscode
