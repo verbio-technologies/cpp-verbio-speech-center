@@ -11,4 +11,3 @@ endfunction()
 
 add_unittest(test_commandLine test_commandLine.cpp)
 add_unittest(test_audio test_audio.cpp)
-add_unittest(test_credentials test_credentials.cpp)

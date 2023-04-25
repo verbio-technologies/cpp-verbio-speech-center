@@ -22,7 +22,7 @@ SpeechCenterCredentials::SpeechCenterCredentials(const std::string& tokenFilePat
 
 std::string SpeechCenterCredentials::getToken() {
     token = readFileContent(tokenFilePath);
-    auto validUntil = decodeExpirationTime();
+    auto validUntil = decodeJwtExpirationTime();
     auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     if (validUntil > now) return token;
 
@@ -65,7 +65,7 @@ std::string SpeechCenterCredentials::requestNewToken() const {
     return new_token;
 }
 
-int64_t SpeechCenterCredentials::decodeExpirationTime() const {
+int64_t SpeechCenterCredentials::decodeJwtExpirationTime() const {
     try {
         const auto decoded = jwt::decode<jwt::traits::nlohmann_json>(token);
         auto claims = decoded.get_payload_claims();

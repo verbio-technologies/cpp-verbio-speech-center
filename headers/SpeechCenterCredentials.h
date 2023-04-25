@@ -29,7 +29,7 @@ private:
 
     std::string requestNewToken() const;
     void writeTokenToFile(std::string token) const;
-    int64_t decodeExpirationTime() const;
+    int64_t decodeJwtExpirationTime() const;
     static std::string readFileContent(const std::string &path);
 
 
