@@ -32,7 +32,7 @@ void Configuration::parse(int argc, char **argv) {
              cxxopts::value<uint32_t>(sampleRate)->default_value(std::to_string(sampleRate)))
             ("t,token", "Path to the authentication token file", cxxopts::value(tokenPath))
             ("H,host", "URL of the Host or server trying to reach",
-             cxxopts::value(host)->default_value("eu.speechcenter.verbio.com"))
+             cxxopts::value(host)->default_value("us.speechcenter.verbio.com"))
             ("S,not-secure", "Toggle for non-secure GRPC connections",
              cxxopts::value<bool>(notSecure)->default_value("false"))
             ("d,diarization", "Toggle for diarization", cxxopts::value<bool>(diarization)->default_value("false"))

@@ -17,6 +17,6 @@ LanguageModelNotImplemented::LanguageModelNotImplemented(const std::string &mode
 MultipleLanguageModelsNotImplemented::MultipleLanguageModelsNotImplemented() : GrpcException(
         "Multiple language models in parallel not implemented.") {}
 
-StreamException::StreamException(const std::string message) : GrpcException("Stream error: " + message) {}
+StreamException::StreamException(const std::string message) : GrpcException("Stream error. Cannot write to stream. (" + message + ")") {}
 
 IOError::IOError(const std::string &message) : GrpcException(message) {}

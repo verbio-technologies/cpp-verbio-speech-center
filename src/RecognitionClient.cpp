@@ -23,7 +23,7 @@ void RecognitionClient::write(
                 Response>>
         stream) {
 
-    INFO("WRITE: STARTING...");
+    INFO("Writing to stream...");
     Request recognitionConfig = buildRecognitionConfig();
     INFO("Sending config: \n{} ", recognitionConfig.DebugString());
     bool streamFail = !stream->Write(recognitionConfig);
@@ -42,7 +42,7 @@ void RecognitionClient::write(
                                 request.audio().length() * 1000 / (bytesPerSamples * configuration.getSampleRate()));
         if (!stream->Write(request)) {
             auto status = stream->Finish();
-            ERROR("{} ({}: {})", status.error_message(), status.error_code(), status.error_details());
+            ERROR("{} (GRPC_ERR_CODE {} - {})", status.error_message(), status.error_code(), status.error_details());
             throw StreamException(status.error_message());
         }
         ++requestCount;
@@ -73,66 +73,85 @@ RecognitionClient::RecognitionClient(const Configuration &configuration) {
 RecognitionClient::~RecognitionClient() = default;
 
 std::shared_ptr<grpc::Channel> RecognitionClient::createChannel() {
-    auto jwt = readFileContent(configuration.getTokenPath());
+    std::string jwt = getJwtToken();
+    establishConnection(jwt);
+    return getReadyChannel();
+}
 
-    if (!configuration.getClientId().empty() && !configuration.getClientSecret().empty()) {
-        auto pair = SpeechCenterCredentials{configuration.getClientId(),
-                                            configuration.getClientSecret(),
-                                            jwt,
-                                            configuration.getTokenPath()}();
-        if (pair.first)
-            jwt = pair.second;
-    }
-
-    // GRPC Non/secure toggle
-    if (configuration.getNotSecure()) {// Not secure:
-        WARN("Establishing insecure connection.");
-        channel = grpc::CreateChannel(configuration.getHost(),
-                                      grpc::InsecureChannelCredentials());
-        context.AddMetadata("authorization", "Bearer" + jwt);
-    } else {// Secure
-        channel = grpc::CreateChannel(
-                configuration.getHost(),
-                grpc::CompositeChannelCredentials(
-                        grpc::SslCredentials(grpc::SslCredentialsOptions()),
-                        grpc::AccessTokenCredentials(jwt)));
-    }
-
+std::shared_ptr<grpc::Channel> RecognitionClient::getReadyChannel() const {
     channel->WaitForConnected(std::chrono::system_clock::now() +
                               std::chrono::seconds(5));
     if (channel->GetState(false) != GRPC_CHANNEL_READY)
         if (!channel->WaitForStateChange(GRPC_CHANNEL_READY,
                                          std::chrono::system_clock::now() +
                                          std::chrono::seconds(5))) {
-            WARN("Channel could get ready.");
+            WARN("Channel could not get ready.");
             return channel;
         }
-    INFO("Channel is ready. State {}", toascii(channel->GetState(true)));
-    INFO("Channel configuration: {}", channel->GetServiceConfigJSON());
+    INFO("Channel is READY.");
+    INFO("Channel configuration: '{}'", channel->GetServiceConfigJSON());
     return channel;
 }
 
-void RecognitionClient::connect() {
+void RecognitionClient::establishConnection(const std::string &jwt) {
+    if (configuration.getNotSecure()) {
+        WARN("Establishing insecure connection.");
+        channel = grpc::CreateChannel(configuration.getHost(),
+                                      grpc::InsecureChannelCredentials());
+        context.AddMetadata("authorization", "Bearer" + jwt);
+    } else {
+        INFO( "Establishing secure connection.");
+        channel = grpc::CreateChannel(
+                configuration.getHost(),
+                grpc::CompositeChannelCredentials(
+                        grpc::SslCredentials(grpc::SslCredentialsOptions()),
+                        grpc::AccessTokenCredentials(jwt)));
+    }
+}
+
+std::string RecognitionClient::getJwtToken() const {
+    auto speechCenterCredentials = SpeechCenterCredentials(configuration.getTokenPath());
+    if (!configuration.getClientId().empty() && !configuration.getClientSecret().empty()) {
+        INFO("Automatic token refresh enabled. Writing new tokens to file: '{}'", configuration.getTokenPath());
+        speechCenterCredentials.setClientCredentials(configuration.getClientId(), configuration.getClientSecret());
+    }
+    return speechCenterCredentials.getToken();
+}
+
+void RecognitionClient::performStreamingRecognition() {
     std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> stream(stub_->StreamingRecognize(&context));
+    INFO("Stream created. State {}", channel->GetState(true));
 
-    INFO("Stream CREATED. State {}", toascii(channel->GetState(true)));
+    stream = bidirectionalStream(stream);
 
-    // Write
+    grpc::Status status = stream->Finish();
+    if (!status.ok()) {
+        ERROR("RESPONSE ERROR!\n\n");
+        throw StreamException(status.error_message());
+    }
+}
+
+std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> &
+RecognitionClient::bidirectionalStream(std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> &stream) {
     std::packaged_task<void(
             std::shared_ptr<grpc::ClientReaderWriter<Request, Response>>)>
             parallel_write(
             [this](
                     std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> stream) { write(stream); });
     auto result = parallel_write.get_future();
-
     auto thread = std::thread{std::move(parallel_write), stream};
 
-    // Read
+    readFromStream(stream);
 
-    INFO("READ: STARTING...");
+    thread.join();
+    result.get();
+    return stream;
+}
 
+void RecognitionClient::readFromStream(std::shared_ptr<grpc::ClientReaderWriter<Request, Response>> &stream) const {
+
+    INFO("Reading from stream...");
     Response response;
-
     while (stream->Read(&response)) {
         if (response.result().is_final() &&
             !response.result().alternatives().empty()) {
@@ -148,17 +167,9 @@ void RecognitionClient::connect() {
             WARN("No recognition result alternatives!");
         }
     }
-    thread.join();
-    result.get();
-    grpc::Status status = stream->Finish();
-    if (!status.ok()) {
-        ERROR("RESPONSE ERROR!\n\n");
-        throw StreamException(status.error_message());
-    }
 }
 
-Request
-RecognitionClient::buildRecognitionConfig() {
+Request RecognitionClient::buildRecognitionConfig() {
     std::unique_ptr<RecognitionConfig>
             configMessage;
 
@@ -271,25 +282,3 @@ RecognitionConfig_AsrVersion RecognitionClient::buildAsrVersion() {
     return topicIter->second;
 }
 
-std::string RecognitionClient::readFileContent(const std::string &path) {
-    std::ifstream ifs(path);
-    std::string content;
-    if (ifs) {
-        std::ostringstream oss;
-        oss << ifs.rdbuf();
-        content = oss.str();
-
-    } else {
-        throw IOError("Unable to open '" + path + "'");
-    }
-
-    return sanitize(content);
-}
-
-std::string RecognitionClient::sanitize(std::string str) {
-    size_t endpos = str.find_last_not_of("\r\n");
-    if (endpos != std::string::npos) {
-        str.substr(0, endpos + 1).swap(str);
-    }
-    return str;
-}
