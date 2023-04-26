@@ -27,7 +27,7 @@ std::string SpeechCenterCredentials::getToken() {
     if (validUntil > now) return token;
 
     if(!clientId.empty() && !clientSecret.empty()){
-        INFO("Current token expired, requesting a new token...");
+        INFO("Current token expired or invalid, requesting a new token...");
         auto newToken = requestNewToken();
         writeTokenToFile(newToken);
         return newToken;
