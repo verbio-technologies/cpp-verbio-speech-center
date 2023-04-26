@@ -168,12 +168,7 @@ RecognitionClient::buildRecognitionConfig() {
     configMessage->set_allocated_parameters(
             buildRecognitionParameters().release());
     configMessage->set_version(buildAsrVersion());
-    auto labels = labelsVector();
-    std::for_each(labels.begin(),
-                  labels.end(),
-                  [&configMessage](const std::string elem){
-                      configMessage->add_label(elem);
-;                  });
+    configMessage->add_label(configuration.getLabel());
 
     Request recognitionConfig;
     recognitionConfig.set_allocated_config(
@@ -231,15 +226,6 @@ RecognitionClient::buildRecognitionResource() {
 
     resource->set_topic(convertTopic(configuration.getTopic()));
     return resource;
-}
-
-std::vector<std::string> RecognitionClient::labelsVector() const {
-    std::vector<std::string> res{};
-    std::istringstream iss{configuration.getLabels()};
-    std::string elem{};
-    while(iss >> elem)
-        res.push_back(elem);
-    return res;
 }
 
 RecognitionResource_Topic
