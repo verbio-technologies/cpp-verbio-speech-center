@@ -58,6 +58,7 @@ This will generate all the configuration files needed and will create all the ne
 ### Compile
 
 You can use cmake to compile the code:
+From `/build`:
 ```shell
 cmake --build . --target all 
 ```
@@ -66,14 +67,13 @@ Once the project is compiled you can check that everything went as expected by e
 ctest
 ```
 ### Run the client
-The cli_client will be using the generated C++ code to connect to the Speech Center cloud to process you speech file.
+The cli_client will be using the generated C++ code to connect to the Speech Center cloud to process you speech file. If you have run the commands from a <project-root>/build directory then the executable is located at <project-root>/build/src directory.
 
 ### 
-
 **Example**
-
+(from `/build/src`) 
 ```shell
-./cli_client -a audiofile.wav -l en-US -t my.token -T generic -s 16000 -H us.speechcenter.verbio.com -V V1
+./cli_client -a audiofile.wav -T generic -t my.token -l en-US --asr-version V1  -H us.speechcenter.verbio.com -s 16000 --client-id my-client-id --client-secret my-client-secret
 ```
 
 Which will give an output along these lines:
