@@ -1,9 +1,9 @@
-FROM conanio/gcc11-ubuntu18.04
-
-USER root
+FROM ubuntu:22.10
 
 RUN apt update && \
-    pip install conan==1.57.0 --upgrade
+    apt install -y build-essential python3 cmake python3-pip
+
+RUN pip3 install conan==1.57.0
 
 WORKDIR /asr-client
 
@@ -11,7 +11,9 @@ COPY . .
 
 RUN mkdir build-asr-cpp-client \
     && cd build-asr-cpp-client \
-    && conan install .. --build=libcurl \
-    && cmake .. -DUSE_CXX11_ABI_0=OFF \
+    && conan install .. --build=missing
+
+RUN cd build-asr-cpp-client \
+    && cmake .. \
     && cmake --build . \
     && cp src/cli_client /usr/local/bin/
