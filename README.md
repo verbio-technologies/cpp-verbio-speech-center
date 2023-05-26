@@ -4,16 +4,61 @@ This repository contains a C++ example of how to use the Verbio Technologies Spe
 
 ## Requirements
 ### Starting requirements
-In order to compile the source code you will need g++>=7, cmake-3.>= 20 and conan >= 1.3
 
-Before you start you will need: 
-1. Speech center proto file (provided in this repository)
-2. Dashboard user account (provided to you by Verbio Technologies), please contact our sales team at info@verbio.com to get one.
-3. Speech center CSR endpoint - us.speechcenter.verbio.com
+Before you start you will need:
+1. Dashboard user account (provided to you by Verbio Technologies), please contact our sales team at info@verbio.com to get one.
+2. Speech center CSR endpoint - us.speechcenter.verbio.com
 
 ## Step by step
 
-### Install Conan dependency manager
+### Docker
+You can create a docker image and run transcriptions from the respective container. 
+You need to have docker installed in your system [Docker installation](https://docs.docker.com/engine/install/).
+#### Create docker image
+From the root of the project run :
+```shell
+docker build -t asr-cpp-client:1.0.0 .
+```
+
+#### Run container
+Create a directory and add any wav audio files in it. 
+Also add the token file, this token file can be a blank file (if the client credentials issued by the dashboard will be used) or a valid token. 
+This directory can be placed anywhere on the computer.
+Run:
+```shell
+docker run --rm -v <audio-and-token-dir>:/asr-client -it asr-cpp-client:1.0.0 /bin/bash
+```
+The audios and token directory mounts to /asr-client directory inside the container, 
+and you can run transcriptions from the container with the:
+```text
+cli_client
+```
+command like:
+```shell
+cli_client -a audiofile.wav -T generic -t my.token -l en-US --asr-version V1  -H us.speechcenter.verbio.com -s 16000 --client-id my-client-id --client-secret my-client-secret
+```
+
+Which will give an output along these lines:
+
+#### Example:
+ ```
+[2022-12-15 11:43:39.022] [info] [RecognitionClient.cpp:88] Channel is ready. State 2
+[2022-12-15 11:43:39.022] [info] [RecognitionClient.cpp:89] Channel configuration: {}
+[2022-12-15 11:43:39.022] [info] [RecognitionClient.cpp:98] Stream CREATED. State 2
+[2022-12-15 11:43:39.024] [info] [RecognitionClient.cpp:103] WRITE: STARTING...
+[2022-12-15 11:43:39.024] [info] [RecognitionClient.cpp:105] Sending config:
+(...)
+ ```
+
+Use:
+```text
+cli_client --help
+```
+for more options.
+
+### Build from source
+In order to compile the source code you will need g++>=7 and cmake-3.>= 20
+#### Install Conan dependency manager
 
 Run:
 ```shell
@@ -29,7 +74,7 @@ pip install conan==1.54.0
 ```
 
 
-### Install conan dependencies
+#### Install conan dependencies
 
 It is recommended to create a `/build` subdirectory in the project root, and run all the following commands from there:
 
@@ -43,11 +88,11 @@ conan install ..
 
 This will also set up the necessary files for CMake build inside the `/build` folder.
 
-### Generate the gRPC code for C++
+#### Generate the gRPC code for C++
 
 There is already a step in the CMake configuration of this project that will generate the C++ code for gRPC. You do not have to worry about it. 
 
-### Configuration
+#### Configuration
 From `/build`:
 ```shell
 cmake ..
@@ -55,7 +100,7 @@ cmake ..
 
 This will generate all the configuration files needed and will create all the necessary C++ from the .proto file that will allow your code to communicate with the Speech Center platform.
 
-### Compile
+#### Compile
 
 You can use cmake to compile the code.
 
@@ -67,10 +112,10 @@ Once the project is compiled you can check that everything went as expected by e
 ```shell
 ctest
 ```
-### Run the client
+#### Run the client
 The cli_client will be using the generated C++ code to connect to the Speech Center cloud to process you speech file. If you have run the commands from a <project-root>/build directory then the executable is located at <project-root>/build/src directory.
 
-### 
+#### 
 
 **Example**
 

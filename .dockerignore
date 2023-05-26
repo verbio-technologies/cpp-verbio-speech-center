@@ -1,8 +1,10 @@
 .idea
 .vscode
 build
+build-asr-cpp-client
 debug
 .cmake
 *.wav
 *.token
 cmake-*
+.github
