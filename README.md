@@ -13,7 +13,7 @@ Before you start you will need:
 
 ### Docker
 You can create a docker image and run transcriptions from the respective container. 
-You need to have docker installed in your system [Docker installation](https://docs.docker.com/engine/install/).
+You need to have docker installed in your system ([Docker installation](https://docs.docker.com/engine/install/)).
 #### Create docker image
 From the root of the project run :
 ```shell
