@@ -16,4 +16,6 @@ RUN mkdir build-asr-cpp-client \
 RUN cd build-asr-cpp-client \
     && cmake .. \
     && cmake --build . \
-    && cp src/cli_client /usr/local/bin/
+    && cp src/cli_client /usr/local/bin/ \
+    && cd .. \
+    && rm -rf *

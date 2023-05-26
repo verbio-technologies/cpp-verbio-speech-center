@@ -12,15 +12,18 @@ Before you start you will need:
 ## Step by step
 
 ### Docker
-You can create a docker image and run transcriptions from the respective container.
+You can create a docker image and run transcriptions from the respective container. 
+You need to have docker installed in your system [Docker installation](https://docs.docker.com/engine/install/).
 #### Create docker image
-From the root of the project run:
+From the root of the project run :
 ```shell
 docker build -t asr-cpp-client:1.0.0 .
 ```
 
 #### Run container
-You need to create one directory with the audio files and with the token file.
+Create a directory and add any wav audio files in it. 
+Also add the token file, this token file can be a blank file (if the client credentials issued by the dashboard will be used) or a valid token. 
+This directory can be placed anywhere on the computer.
 Run:
 ```shell
 docker run --rm -v <audio-and-token-dir>:/asr-client -it asr-cpp-client:1.0.0 /bin/bash
