@@ -14,8 +14,12 @@ Before you start you will need:
 ### Docker
 You can create a docker image and run transcriptions from the respective container. 
 You need to have docker installed in your system ([Docker installation](https://docs.docker.com/engine/install/)).
-#### Create docker image
-From the root of the project run :
+#### Pull docker image
+Pull docker image from Docker Hub with:
+```shell
+docker pull mjuradoverbio/asr-streaming-cpp-client:1.0.0
+#### Or create docker image
+Alternatively, you can build the docker image. From the root of the project run :
 ```shell
 docker build -t asr-cpp-client:1.0.0 .
 ```
