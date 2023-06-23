@@ -12,7 +12,7 @@ Before you start you will need:
 ## Step by step
 
 ### Docker
-You can create a docker image and run transcriptions from the respective container. 
+You can pull a docker image from our public repository at Docker Hub, or alternatively, create a docker image and run transcriptions from the respective container. 
 You need to have docker installed in your system ([Docker installation](https://docs.docker.com/engine/install/)).
 #### Pull docker image
 Pull docker image from Docker Hub with:
