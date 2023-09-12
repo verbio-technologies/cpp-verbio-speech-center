@@ -20,7 +20,7 @@ jobs:
         run: conan install cmake/3.16.4@ -g=virtualrunenv
         working-directory: ./build
       - name: Build
-        run: conan install -s compiler.libcxx=libstdc++ .. && cmake .. && cmake --build ./ --target all --parallel
+        run: conan install -s compiler.libcxx=libstdc++ --build=missing .. && cmake .. && cmake --build ./ --target all --parallel
         working-directory: ./build
       - name: Test
         run: ctest --parallel
