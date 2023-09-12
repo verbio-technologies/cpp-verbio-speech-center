@@ -1,11 +1,11 @@
 #include "Configuration.h"
-
 #include "gRpcExceptions.h"
+#include "logger.h"
 
 #include <cxxopts.hpp>
 
 
-Configuration::Configuration() : host("csr.api.speechcenter.verbio.com"), topic("generic"), language("en-US"),
+Configuration::Configuration() : host("us.speechcenter.verbio.com"), topic("generic"), language("en-US"),
                                  sampleRate(8000) {}
 
 Configuration::Configuration(int argc, char **argv) : Configuration() {
@@ -51,6 +51,7 @@ void Configuration::parse(int argc, char **argv) {
     if ((parsedOptions.count("t") == 0) == (parsedOptions.count("g") == 0))
         throw GrpcException("Topic and grammar options are mutually exclusive and at least one is needed.");
 
+    validate_configuration_values();
 }
 
 std::string Configuration::getAudioPath() const {
@@ -107,4 +108,27 @@ std::string Configuration::getClientId()  const {
 
 std::string Configuration::getClientSecret()  const {
     return clientSecret;
+}
+
+void Configuration::validate_configuration_values() {
+
+    if(sampleRate != 8000 and sampleRate != 16000) {
+        throw std::runtime_error("Unsupported sample rate value. Allowed values: 8000 or 1600");
+    }
+
+    if (std::find(allowedTopicValues.begin(), allowedTopicValues.end(), topic) == allowedTopicValues.end())
+    {
+        throw std::runtime_error("Unsupported topic value. Allowed values: GENERIC, BANKING, TELCO, INSURANCE");
+    }
+    
+    if (std::find(allowedLanguageValues.begin(), allowedLanguageValues.end(), language) == allowedLanguageValues.end())
+    {
+        throw std::runtime_error("Unsupported language value. Allowed values: en-US, en-GB, pt-BR, es, es-419, tr, ja, fr, fr-CA, de, it");
+    }
+
+    if (std::find(allowedAsrVersionValues.begin(), allowedAsrVersionValues.end(), asrVersion) == allowedAsrVersionValues.end())
+    {
+        throw std::runtime_error("Unsupported asr version value. Allowed values: V1, V2");
+    }
+
 }

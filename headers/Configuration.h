@@ -45,6 +45,8 @@ public:
 
     std::string getClientSecret()  const;
 
+    void validate_configuration_values();
+
 private:
     std::string language;
     std::string topic;
@@ -60,6 +62,10 @@ private:
     std::string label;
     std::string clientId;
     std::string clientSecret;
+    std::vector<std::string> allowedTopicValues = {"GENERIC", "BANKING", "TELCO", "INSURANCE"};
+    std::vector<std::string> allowedLanguageValues = {"en-US", "en-GB", "pt-BR", "es", "es-419", "tr", "ja", "fr", "fr-CA", "de", "it"};
+    std::vector<std::string> allowedAsrVersionValues = {"V1", "V2"};
+    
 };
 
 

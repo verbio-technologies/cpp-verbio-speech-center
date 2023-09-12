@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
         Configuration configuration(argc, argv);
         RecognitionClient client(configuration);
         client.performStreamingRecognition();
-    } catch (GrpcException &e) {
+    } catch (std::exception &e) {
         ERROR(e.what());
         return -1;
     }
