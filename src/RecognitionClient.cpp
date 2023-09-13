@@ -257,6 +257,7 @@ RecognitionClient::convertTopic(const std::string &topicName) {
 
     auto topicIter = validTopics.find(topicUpper);
     if (topicIter == validTopics.end()) {
+        ERROR("Unsupported topic: {}", topicName);
         throw UnknownTopicModel(topicUpper);
     }
 

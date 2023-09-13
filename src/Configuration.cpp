@@ -1,11 +1,11 @@
 #include "Configuration.h"
-
 #include "gRpcExceptions.h"
+#include "logger.h"
 
 #include <cxxopts.hpp>
 
 
-Configuration::Configuration() : host("csr.api.speechcenter.verbio.com"), topic("generic"), language("en-US"),
+Configuration::Configuration() : host("us.speechcenter.verbio.com"), topic("generic"), language("en-US"),
                                  sampleRate(8000) {}
 
 Configuration::Configuration(int argc, char **argv) : Configuration() {
@@ -51,6 +51,7 @@ void Configuration::parse(int argc, char **argv) {
     if ((parsedOptions.count("t") == 0) == (parsedOptions.count("g") == 0))
         throw GrpcException("Topic and grammar options are mutually exclusive and at least one is needed.");
 
+    validate_configuration_values();
 }
 
 std::string Configuration::getAudioPath() const {
@@ -107,4 +108,29 @@ std::string Configuration::getClientId()  const {
 
 std::string Configuration::getClientSecret()  const {
     return clientSecret;
+}
+
+void Configuration::validate_configuration_values() {
+
+    if(sampleRate != 8000 and sampleRate != 16000) {
+        throw std::runtime_error("Unsupported parameter value. Allowed values sample rate: 8000 1600");
+    }
+
+    validate_string_value("topic", topic, allowedTopicValues);
+    validate_string_value("language", language, allowedLanguageValues);
+    validate_string_value("asr version", asrVersion, allowedAsrVersionValues);
+}
+
+
+void Configuration::validate_string_value(const char *name, const std::string &value, const std::vector<std::string> &allowedValues) {
+    if (std::find(allowedValues.begin(), allowedValues.end(), value) == allowedValues.end())
+    {
+        std::stringstream ss;
+        std::copy(allowedValues.begin(), allowedValues.end(), std::ostream_iterator<std::string>(ss, " "));
+        std::string allowedValuesList = ss.str();
+        std::string nameString(name);
+        std::string errorMessage("Unsupported parameter value. Allowed values for ");
+        std::string exceptionMessage = errorMessage + nameString.append(": ") + allowedValuesList;
+        throw std::runtime_error(exceptionMessage);
+    }
 }
