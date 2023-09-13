@@ -113,22 +113,24 @@ std::string Configuration::getClientSecret()  const {
 void Configuration::validate_configuration_values() {
 
     if(sampleRate != 8000 and sampleRate != 16000) {
-        throw std::runtime_error("Unsupported sample rate value. Allowed values: 8000 or 1600");
+        throw std::runtime_error("Unsupported parameter value. Allowed values sample rate: 8000 1600");
     }
 
-    if (std::find(allowedTopicValues.begin(), allowedTopicValues.end(), topic) == allowedTopicValues.end())
-    {
-        throw std::runtime_error("Unsupported topic value. Allowed values: GENERIC, BANKING, TELCO, INSURANCE");
-    }
-    
-    if (std::find(allowedLanguageValues.begin(), allowedLanguageValues.end(), language) == allowedLanguageValues.end())
-    {
-        throw std::runtime_error("Unsupported language value. Allowed values: en-US, en-GB, pt-BR, es, es-419, tr, ja, fr, fr-CA, de, it");
-    }
+    validate_string_value("topic", topic, allowedTopicValues);
+    validate_string_value("language", language, allowedLanguageValues);
+    validate_string_value("asr version", asrVersion, allowedAsrVersionValues);
+}
 
-    if (std::find(allowedAsrVersionValues.begin(), allowedAsrVersionValues.end(), asrVersion) == allowedAsrVersionValues.end())
-    {
-        throw std::runtime_error("Unsupported asr version value. Allowed values: V1, V2");
-    }
 
+void Configuration::validate_string_value(const char *name, const std::string &value, const std::vector<std::string> &allowedValues) {
+    if (std::find(allowedValues.begin(), allowedValues.end(), value) == allowedValues.end())
+    {
+        std::stringstream ss;
+        std::copy(allowedValues.begin(), allowedValues.end(), std::ostream_iterator<std::string>(ss, " "));
+        std::string allowedValuesList = ss.str();
+        std::string nameString(name);
+        std::string errorMessage("Unsupported parameter value. Allowed values for ");
+        std::string exceptionMessage = errorMessage + nameString.append(": ") + allowedValuesList;
+        throw std::runtime_error(exceptionMessage);
+    }
 }

@@ -48,6 +48,9 @@ public:
     void validate_configuration_values();
 
 private:
+
+    void validate_string_value(const char *name, const std::string &value, const std::vector<std::string> &allowedValues);
+
     std::string language;
     std::string topic;
     std::string grammarPath;
