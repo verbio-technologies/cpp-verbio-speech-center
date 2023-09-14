@@ -17,7 +17,7 @@ You need to have docker installed in your system ([Docker installation](https://
 #### Pull docker image
 Pull docker image from Docker Hub with:
 ```shell
-docker pull mjuradoverbio/asr-streaming-cpp-client:1.0.0
+docker pull mjuradoverbio/asr-streaming-cpp-client:1.1.0
 ```
 #### Or create docker image
 Alternatively, you can build the docker image. From the root of the project run :
