@@ -22,7 +22,7 @@ docker pull mjuradoverbio/asr-streaming-cpp-client:1.1.0
 #### Or create docker image
 Alternatively, you can build the docker image. From the root of the project run :
 ```shell
-docker build -t asr-cpp-client:1.0.0 .
+docker build -t asr-cpp-client:1.1.0 .
 ```
 
 #### Run container
@@ -31,7 +31,7 @@ Also add the token file, this token file can be a blank file (if the client cred
 This directory can be placed anywhere on the computer.
 Run:
 ```shell
-docker run --rm -v <audio-and-token-dir>:/asr-client -it asr-cpp-client:1.0.0 /bin/bash
+docker run --rm -v <audio-and-token-dir>:/asr-client -it asr-cpp-client:1.1.0 /bin/bash
 ```
 The audios and token directory mounts to /asr-client directory inside the container, 
 and you can run transcriptions from the container with the:
