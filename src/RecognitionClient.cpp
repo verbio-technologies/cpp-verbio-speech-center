@@ -235,7 +235,10 @@ RecognitionClient::buildRecognitionResource() {
     std::unique_ptr<RecognitionResource> resource(
             new RecognitionResource());
 
-    resource->set_topic(convertTopic(configuration.getTopic()));
+    if (configuration.hasTopic())
+        resource->set_topic(convertTopic(configuration.getTopic()));
+    else if (configuration.hasGrammar())
+        resource->set_allocated_grammar(buildGrammarResource(configuration.getGrammar()));
     return resource;
 }
 
@@ -262,6 +265,30 @@ RecognitionClient::convertTopic(const std::string &topicName) {
     }
 
     return topicIter->second;
+}
+
+GrammarResource*
+RecognitionClient::buildGrammarResource(const Grammar &grammar) {
+    GrammarResource* resource = new GrammarResource();
+    std::vector<char> bytes;
+
+    switch (grammar.getType()) {
+        case GrammarType::INLINE:
+            resource->set_inline_grammar(grammar.getContent());
+            break;
+        case GrammarType::URI:
+            resource->set_grammar_uri(grammar.getContent());
+            break;
+        case GrammarType::COMPILED:
+            bytes = grammar.getCompiledBytes();
+            resource->set_compiled_grammar(bytes.data(), bytes.size());
+            break;
+        default:
+            ERROR("Unsupported grammar: {}", grammar.getContent());
+            throw UnknownGrammarModel(grammar.getContent());
+    }
+
+    return resource;
 }
 
 RecognitionConfig_AsrVersion RecognitionClient::buildAsrVersion() {
