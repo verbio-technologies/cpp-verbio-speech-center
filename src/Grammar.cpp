@@ -6,7 +6,9 @@ Grammar::Grammar() : type{NONE}, content{} {}
 Grammar::Grammar(const GrammarType type, const std::string content) : type(type), content(content) {
     if (type == COMPILED) {
         std::ifstream input(content, std::ios::binary);
-        compiledBytes = {content.data(), content.data() + content.length()};
+        compiledBytes = std::vector<char> (
+                (std::istreambuf_iterator<char>(input)),
+                (std::istreambuf_iterator<char>()));
         input.close();
     }
 }
