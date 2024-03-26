@@ -238,7 +238,7 @@ RecognitionClient::buildRecognitionResource() {
     if (configuration.hasTopic())
         resource->set_topic(convertTopic(configuration.getTopic()));
     else if (configuration.hasGrammar())
-        resource->set_allocated_grammar(buildGrammarResource(configuration.getGrammar()).release());
+        resource->set_allocated_grammar(buildGrammarResource(configuration.getGrammar()));
     return resource;
 }
 
@@ -267,10 +267,9 @@ RecognitionClient::convertTopic(const std::string &topicName) {
     return topicIter->second;
 }
 
-std::unique_ptr<GrammarResource>
+GrammarResource*
 RecognitionClient::buildGrammarResource(const Grammar &grammar) {
-    std::unique_ptr<GrammarResource> resource(
-            new GrammarResource());
+    GrammarResource* resource = new GrammarResource();
     std::vector<char> bytes;
 
     switch (grammar.getType()) {

@@ -37,7 +37,7 @@ private:
 
     std::unique_ptr<RecognitionResource> buildRecognitionResource();
 
-    std::unique_ptr<GrammarResource> buildGrammarResource(const Grammar &grammar);
+    GrammarResource* buildGrammarResource(const Grammar &grammar);
 
     std::unique_ptr<RecognitionParameters> buildRecognitionParameters();
 

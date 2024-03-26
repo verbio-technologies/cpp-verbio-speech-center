@@ -13,9 +13,7 @@ Grammar::Grammar(const GrammarType type, const std::string content) {
     if (type == COMPILED && compiledBytes.empty()) {
         std::ifstream input(content, std::ios::binary);
 
-        compiledBytes = std::vector<char> (
-                (std::istreambuf_iterator<char>(input)),
-                (std::istreambuf_iterator<char>()));
+        compiledBytes = {content.data(), content.data() + content.length()};
 
         input.close();
     }
