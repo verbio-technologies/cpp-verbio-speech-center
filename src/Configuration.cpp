@@ -15,13 +15,16 @@ Configuration::Configuration(int argc, char **argv) : Configuration() {
 Configuration::~Configuration() = default;
 
 void Configuration::parse(int argc, char **argv) {
+    std::string grammarValue = "";
 
     cxxopts::Options options(argv[0], "Verbio Technlogies S.L. - Speech Center client example");
     options.set_width(180).allow_unrecognised_options().add_options()
             ("a,audio",
              "Path to a .wav audio in 8kHz or 16kHz sampling rate and PCM16 encoding to use for the recognition",
              cxxopts::value(audioPath), "file")
-            //("g,grammar", "Path to the Grammar ABNF file to use for the recognition", cxxopts::value(grammarPath), "file")
+            ("I,inline-grammar", "ABNF Grammar to use for the recognition passed as a string", cxxopts::value(grammarValue)->default_value(grammarValue), "string")
+            ("G,grammar-uri", "Grammar URI to use for the recognition (builtin or externally served)", cxxopts::value(grammarValue)->default_value(grammarValue), "uri")
+            ("C,compiled-grammar", "Path to the compiled grammar file to use for the recognition", cxxopts::value(grammarValue)->default_value(grammarValue), "file")
             ("T,topic",
              "Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO | INSURANCE",
              cxxopts::value(topic)->default_value(topic))
@@ -48,8 +51,21 @@ void Configuration::parse(int argc, char **argv) {
         std::cout << options.help();
         exit(0);
     }
-    if ((parsedOptions.count("t") == 0) == (parsedOptions.count("g") == 0))
+    if (1 != (parsedOptions.count("T") == 0) + (parsedOptions.count("G") == 0) + (parsedOptions.count("I") == 0) + (parsedOptions.count("C") == 0))
         throw GrpcException("Topic and grammar options are mutually exclusive and at least one is needed.");
+
+    if (parsedOptions.count("G") == 1) {
+        grammar = Grammar(URI, grammarValue);
+    }
+    else if(parsedOptions.count("I") == 1) {
+        grammar = Grammar(INLINE, grammarValue);
+    }
+    else if (parsedOptions.count("C") == 1) {
+        grammar = Grammar(COMPILED, grammarValue);
+    }
+    else {
+        grammar = Grammar();
+    }
 
     validate_configuration_values();
 }
@@ -70,8 +86,16 @@ std::string Configuration::getTokenPath() const {
     return tokenPath;
 }
 
-std::string Configuration::getGrammarPath() const {
-    return grammarPath;
+bool Configuration::hasGrammar() const {
+    return grammar.getType() != GrammarType::NONE;
+}
+
+Grammar Configuration::getGrammar() const {
+    return grammar;
+}
+
+bool Configuration::hasTopic() const {
+    return !topic.empty();
 }
 
 std::string Configuration::getTopic() const {
