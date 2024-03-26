@@ -6,7 +6,6 @@ add_library(speech-center-client STATIC
         RecognitionClient.cpp
         Configuration.cpp
         Audio.cpp
-        Grammar.cpp
         SpeechCenterCredentials.cpp)
 
 target_link_libraries(speech-center-client PUBLIC

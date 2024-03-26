@@ -1,10 +1,11 @@
 #ifndef VERBIO_ASRTESTCONFIGURATION_H
 #define VERBIO_ASRTESTCONFIGURATION_H
 
+
 #include <memory>
 #include <string>
 #include <vector>
-#include "Grammar.h"
+
 
 class Configuration {
 public:
@@ -18,8 +19,6 @@ public:
 
     std::string getAudioPath() const;
 
-    bool hasTopic() const;
-
     std::string getTopic() const;
 
     std::string getHost() const;
@@ -28,9 +27,7 @@ public:
 
     std::string getTokenPath() const;
 
-    bool hasGrammar() const;
-
-    Grammar getGrammar() const;
+    std::string getGrammarPath() const;
 
     uint32_t getSampleRate() const;
 
@@ -56,7 +53,7 @@ private:
 
     std::string language;
     std::string topic;
-    Grammar grammar;
+    std::string grammarPath;
     std::string audioPath;
     std::string host;
     std::string tokenPath;
@@ -73,5 +70,6 @@ private:
     std::vector<std::string> allowedAsrVersionValues = {"V1", "V2"};
     
 };
+
 
 #endif

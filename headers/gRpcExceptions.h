@@ -30,11 +30,6 @@ public:
     explicit UnknownTopicModel(const std::string &topic);
 };
 
-class UnknownGrammarModel : public GrpcException {
-public:
-    explicit UnknownGrammarModel(const std::string &grammar);
-};
-
 class UnsupportedSampleRate : public GrpcException {
 public:
     explicit UnsupportedSampleRate(const std::string &sampleRate);

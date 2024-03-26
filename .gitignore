@@ -6,4 +6,3 @@ debug
 *.wav
 *.token
 cmake-*
-env/

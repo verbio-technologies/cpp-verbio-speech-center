@@ -37,8 +37,6 @@ private:
 
     std::unique_ptr<RecognitionResource> buildRecognitionResource();
 
-    std::unique_ptr<GrammarResource> buildGrammarResource(const Grammar &grammar);
-
     std::unique_ptr<RecognitionParameters> buildRecognitionParameters();
 
     static std::unique_ptr<PCM> buildPCM(const uint32_t &sampleRate);

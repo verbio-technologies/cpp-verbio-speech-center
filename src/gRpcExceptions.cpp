@@ -6,8 +6,6 @@ CallbackNotImplemented::CallbackNotImplemented() : GrpcException("Callback is no
 
 UnknownTopicModel::UnknownTopicModel(const std::string &topic) : GrpcException("Unknown topic: " + topic) {}
 
-UnknownGrammarModel::UnknownGrammarModel(const std::string &grammar) : GrpcException("Unknown grammar: " + grammar) {}
-
 UnsupportedSampleRate::UnsupportedSampleRate(const std::string &sampleRate) : GrpcException(
         "Unsupported sample rate: " + sampleRate) {}
 
