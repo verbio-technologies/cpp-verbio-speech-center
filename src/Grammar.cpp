@@ -10,7 +10,7 @@ Grammar::Grammar(const GrammarType type, const std::string content) {
     this->type = type;
     this->content = content;
 
-    if (type == COMPILED && compiledBytes.empty()) {
+    if (type == COMPILED) {
         std::ifstream input(content, std::ios::binary);
 
         compiledBytes = {content.data(), content.data() + content.length()};
