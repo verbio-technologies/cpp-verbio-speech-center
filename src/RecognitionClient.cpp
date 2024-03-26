@@ -271,6 +271,7 @@ std::unique_ptr<GrammarResource>
 RecognitionClient::buildGrammarResource(const Grammar &grammar) {
     std::unique_ptr<GrammarResource> resource(
             new GrammarResource());
+    std::vector<char> bytes;
 
     switch (grammar.getType()) {
         case GrammarType::INLINE:
@@ -280,6 +281,9 @@ RecognitionClient::buildGrammarResource(const Grammar &grammar) {
             resource->set_grammar_uri(grammar.getContent());
             break;
         case GrammarType::COMPILED:
+            bytes = grammar.getCompiledBytes();
+            resource->set_compiled_grammar(bytes.data(), bytes.size());
+            break;
         default:
             ERROR("Unsupported grammar: {}", grammar.getContent());
             throw UnknownGrammarModel(grammar.getContent());

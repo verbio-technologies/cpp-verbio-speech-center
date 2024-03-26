@@ -2,6 +2,7 @@
 #define SPEECHCENTER_GRAMMAR_H
 
 #include <string>
+#include <vector>
 
 enum GrammarType {
     NONE,
@@ -22,9 +23,12 @@ public:
 
     std::string getContent() const;
 
+    std::vector<char> getCompiledBytes() const;
+
 private:
     GrammarType type;
     std::string content;
+    std::vector<char> compiledBytes;
 };
 
 
