@@ -5,7 +5,7 @@
 #include <cxxopts.hpp>
 
 
-Configuration::Configuration() : host("us.speechcenter.verbio.com"), topic("generic"), language("en-US"),
+Configuration::Configuration() : host("us.speechcenter.verbio.com"), language("en-US"),
                                  sampleRate(8000) {}
 
 Configuration::Configuration(int argc, char **argv) : Configuration() {
@@ -137,10 +137,11 @@ std::string Configuration::getClientSecret()  const {
 void Configuration::validate_configuration_values() {
 
     if(sampleRate != 8000 and sampleRate != 16000) {
-        throw std::runtime_error("Unsupported parameter value. Allowed values sample rate: 8000 1600");
+        throw std::runtime_error("Unsupported parameter value. Allowed values sample rate: 8000 16000");
     }
 
-    validate_string_value("topic", topic, allowedTopicValues);
+    if (hasTopic())
+        validate_string_value("topic", topic, allowedTopicValues);
     validate_string_value("language", language, allowedLanguageValues);
     validate_string_value("asr version", asrVersion, allowedAsrVersionValues);
 }
