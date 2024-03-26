@@ -26,8 +26,8 @@ public:
     std::vector<char> getCompiledBytes() const;
 
 private:
-    const GrammarType type;
-    const std::string content;
+    GrammarType type;
+    std::string content;
     std::vector<char> compiledBytes;
 };
 
