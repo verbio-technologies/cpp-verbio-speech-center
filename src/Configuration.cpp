@@ -29,7 +29,7 @@ void Configuration::parse(int argc, char **argv) {
              "Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO | INSURANCE",
              cxxopts::value(topic))
             ("l,language",
-             "Language to use for the recognition: en-US, en-GB, pt-BR, es, es-419, tr, ja, fr, fr-CA, de, it",
+             "Language to use for the recognition: en-US, en-GB, pt-BR, es, ca-ES, es-419, tr, ja, fr, fr-CA, de, it",
              cxxopts::value(language)->default_value(language))
             ("s,sample-rate", "Sampling rate for the audio recognition: 8000, 16000.",
              cxxopts::value<uint32_t>(sampleRate)->default_value(std::to_string(sampleRate)))
