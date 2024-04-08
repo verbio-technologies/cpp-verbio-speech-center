@@ -279,7 +279,7 @@ There are three options available to provide a grammar:
 -l, --language arg
 ```
 
-Language to use for the recognition: `en-US`, `en-GB`, `pt-BR`, `es`, `es-419`, `tr`, `ja`, `fr`, `fr-CA`, `de`, `it` (default: `en-US`).
+Language to use for the recognition: `en-US`, `en-GB`, `pt-BR`, `es`, `ca-ES`, `es-419`, `tr`, `ja`, `fr`, `fr-CA`, `de`, `it` (default: `en-US`).
 
 
 #### Sample rate
