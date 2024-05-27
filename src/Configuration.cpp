@@ -20,11 +20,11 @@ void Configuration::parse(int argc, char **argv) {
     cxxopts::Options options(argv[0], "Verbio Technlogies S.L. - Speech Center client example");
     options.set_width(180).allow_unrecognised_options().add_options()
             ("a,audio",
-             "Path to a .wav audio in 8kHz or 16kHz sampling rate and PCM16 encoding to use for the recognition",
+             "Path to a .wav audio in 8kHz or 16kHz sampling rate and PCM16 encoding to use for the recognition.",
              cxxopts::value(audioPath), "file")
-            ("I,inline-grammar", "ABNF Grammar to use for the recognition passed as a string", cxxopts::value(grammarInline), "string")
-            ("G,grammar-uri", "Grammar URI to use for the recognition (builtin or externally served)", cxxopts::value(grammarUri), "uri")
-            ("C,compiled-grammar", "Path to the compiled grammar file to use for the recognition", cxxopts::value(grammarCompiled), "file")
+            ("I,inline-grammar", "ABNF Grammar to use for the recognition passed as a string.", cxxopts::value(grammarInline), "string")
+            ("G,grammar-uri", "Grammar URI to use for the recognition (builtin or externally served).", cxxopts::value(grammarUri), "uri")
+            ("C,compiled-grammar", "Path to the compiled grammar file (a .tar.xz file) to use for the recognition.", cxxopts::value(grammarCompiled), "file")
             ("T,topic",
              "Topic to use for the recognition when a grammar is not provided. Must be GENERIC | BANKING | TELCO | INSURANCE",
              cxxopts::value(topic))

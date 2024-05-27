@@ -16,7 +16,9 @@ target_link_libraries(speech-center-client PUBLIC
         SndFile::sndfile
         cpr::cpr
         jwt-cpp::jwt-cpp
-        nlohmann_json::nlohmann_json)
+        nlohmann_json::nlohmann_json
+        stdc++fs
+)
 
 add_executable(cli_client
         main.cpp)
