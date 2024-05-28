@@ -18,6 +18,22 @@ using namespace speechcenter::recognizer::v1;
 typedef RecognitionStreamingRequest Request;
 typedef RecognitionStreamingResponse Response;
 
+namespace {
+
+    std::string buildLogString(Request request) {
+        if (request.config().has_resource() &&
+            request.config().resource().has_grammar() &&
+            request.config().resource().grammar().has_compiled_grammar()) {
+            GrammarResource* resource = request.mutable_config()->mutable_resource()->mutable_grammar();
+            std::string str = "Compiled Grammar";
+            std::vector<char> bytes(str.begin(), str.end());
+            resource->set_compiled_grammar(bytes.data(), bytes.size());
+        }
+        return request.DebugString();
+    }
+
+}
+
 void RecognitionClient::write(
         std::shared_ptr<grpc::ClientReaderWriter<Request,
                 Response>>
@@ -25,7 +41,7 @@ void RecognitionClient::write(
 
     INFO("Writing to stream...");
     Request recognitionConfig = buildRecognitionConfig();
-    INFO("Sending config: \n{} ", recognitionConfig.DebugString());
+    INFO("Sending config: \n{} ", buildLogString(recognitionConfig));
     bool streamFail = !stream->Write(recognitionConfig);
     if (streamFail) {
         auto status = stream->Finish();
@@ -309,4 +325,3 @@ RecognitionConfig_AsrVersion RecognitionClient::buildAsrVersion() {
 
     return topicIter->second;
 }
-

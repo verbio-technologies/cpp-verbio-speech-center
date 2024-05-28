@@ -26,10 +26,12 @@ public:
     std::vector<char> getCompiledBytes() const;
 
 private:
+    void readCompiledGrammar();
+
     GrammarType type;
     std::string content;
     std::vector<char> compiledBytes;
 };
 
 
-#endif//SPEECHCENTER_GRAMMAR_H
+#endif //SPEECHCENTER_GRAMMAR_H
