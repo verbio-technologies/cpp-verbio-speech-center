@@ -1,29 +1,32 @@
 name: C/C++
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    container:
+      image: conanio/gcc11
+      options: --user root
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Install Conan
-        run: pip install conan==1.60.0 && conan --version
+      - uses: actions/checkout@v4
+
+      - name: Upgrade Conan
+        run: pip install conan==1.65.0
+
       - name: Create Build Folder
         run: mkdir build
-      - name: Install CMake
-        run: conan install cmake/3.16.4@ -g=virtualrunenv
-        working-directory: ./build
+
       - name: Build
         run: conan install -s compiler.libcxx=libstdc++ --build=missing .. && cmake .. && cmake --build ./ --target all --parallel
         working-directory: ./build
+
       - name: Test
         run: ctest --parallel
         working-directory: ./build
+
       - name: Exec
         run: ./build/src/cli_client --help
