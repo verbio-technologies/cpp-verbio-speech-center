@@ -12,24 +12,14 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    container:
+      image: conanio/gcc11
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install Conan
-        run: pip install conan==1.60.0 && conan --version
-
       - name: Create Build Folder
         run: mkdir build
-
-      - name: Install CMake
-        run: conan install cmake/3.16.4@ -g=virtualrunenv
-        working-directory: ./build
 
       - name: Build
         run: |
