@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Upgrade Conan
+        run: pip install conan==1.65.0
+
       - name: Create Build Folder
         run: mkdir build
 
