@@ -17,7 +17,7 @@ You need to have docker installed in your system ([Docker installation](https://
 #### Pull docker image
 Pull docker image from Docker Hub with:
 ```shell
-docker pull mjuradoverbio/asr-streaming-cpp-client:1.1.0
+docker pull verbio/speechcenter-stt-streaming-cpp-client:0.1.0
 ```
 #### Or create docker image
 Alternatively, you can build the docker image. From the root of the project run :
@@ -253,9 +253,8 @@ This argument is required, stating a path to a .wav audio in 8kHz or 16kHz sampl
 -T, --topic arg
 ```
 
- Topic to use for the recognition when a grammar is not provided. Must be `GENERIC` | `BANKING` | `TELCO` | `INSURANCE` (default: `GENERIC`).
- 
-> **THIS FEATURE IS STILL IN DEVELOPMENT, PLEASE USE THE GENERIC TOPIC FOR ALL REQUESTS OR AN ERROR WILL BE GIVEN.**
+ Topic to use for the recognition when a grammar is not provided. Must be `generic`
+
 
 #### Grammar
 
@@ -289,7 +288,7 @@ Language to use for the recognition: `en-US`, `en-GB`, `pt-BR`, `es`, `ca-ES`, `
 -s, --sample-rate arg
 ```
 
-Sampling rate for the audio recognition: 8000, 16000. (default: 8000).
+The sampling rate for the audio recognition: 8000, 16000. (default: 8000).
 
 #### Token
 
@@ -317,7 +316,7 @@ In order for the client to work, the token argument is required in the following
 --client-secret arg  Client secret for token refresh (default: "")
 ``` 
 
-`client-id` and `client-secret` fields are required for automatic token refreshal. The arguments need to be written inline with no quotes for each field.
+`client-id` and `client-secret` fields are required for automatic token refresh. The arguments need to be written inline with no quotes for each field.
 
 #### Host
 
