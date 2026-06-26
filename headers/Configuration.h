@@ -69,7 +69,7 @@ private:
     std::string clientId;
     std::string clientSecret;
     std::vector<std::string> allowedTopicValues = {"GENERIC"};
-    std::vector<std::string> allowedLanguageValues = {"en-US", "en-GB", "pt-BR", "es", "ca-ES", "es-419", "tr", "ja", "fr", "fr-CA", "de", "it"};
+    std::vector<std::string> allowedLanguageValues = {"en-US", "en-GB", "pt-BR", "es", "ca-ES", "es-419", "gl-ES", "tr", "ja", "fr", "fr-CA", "de", "it"};
     std::vector<std::string> allowedAsrVersionValues = {"V1", "V2"};
     
 };
